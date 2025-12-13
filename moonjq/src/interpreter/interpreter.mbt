@@ -869,19 +869,137 @@ fn eval_with_env(
 
     // Update operator: modify value in place
     @ast.Expr::Update(path, update_expr) => {
-      // For now, simplified implementation
-      // Evaluate the path to get current value, apply update, return modified input
-      let current_results = eval_with_env(path, input, env).collect()
-      if current_results.is_empty() {
-        return Iter::singleton(input)
+      // Update value at path: get current value, apply update, set new value
+      fn apply_update(
+        obj : Json,
+        p : @ast.Expr,
+        upd : @ast.Expr,
+      ) -> Json raise InterpreterError {
+        match p {
+          @ast.Expr::Identity => {
+            // Update the whole object
+            let results = eval_with_env(upd, obj, env).collect()
+            if results.is_empty() {
+              obj
+            } else {
+              results[0]
+            }
+          }
+          @ast.Expr::Key(key) =>
+            // Update at specific key in object
+            match obj {
+              Object(map) => {
+                let current = match map.get(key) {
+                  Some(v) => v
+                  None => Json::null()
+                }
+                let upd_results = eval_with_env(upd, current, env).collect()
+                if upd_results.is_empty() {
+                  obj
+                } else {
+                  let new_map : Map[String, Json] = {}
+                  for k, v in map {
+                    new_map[k] = v
+                  }
+                  new_map[key] = upd_results[0]
+                  Json::object(new_map)
+                }
+              }
+              _ => obj
+            }
+          @ast.Expr::Index(indices) =>
+            // Update at specific index in array
+            match obj {
+              Array(arr) => {
+                if indices.is_empty() || indices.length() != 1 {
+                  return obj
+                }
+                let idx = indices[0]
+                if idx < 0 || idx >= arr.length() {
+                  return obj
+                }
+                let current = arr[idx]
+                let upd_results = eval_with_env(upd, current, env).collect()
+                if upd_results.is_empty() {
+                  obj
+                } else {
+                  let new_arr = arr.copy()
+                  new_arr[idx] = upd_results[0]
+                  Json::array(new_arr)
+                }
+              }
+              _ => obj
+            }
+          @ast.Expr::Pipe(left, right) =>
+            // Chained path like .a.b: navigate left, update right within result, put back
+            match left {
+              @ast.Expr::Identity =>
+                // Optimize: . | .b is just .b
+                apply_update(obj, right, upd)
+              @ast.Expr::Key(key) =>
+                // Navigate to key, update the right path within it
+                match obj {
+                  Object(map) => {
+                    let current = match map.get(key) {
+                      Some(v) => v
+                      None => Json::null()
+                    }
+                    let updated = apply_update(current, right, upd)
+                    let new_map : Map[String, Json] = {}
+                    for k, v in map {
+                      new_map[k] = v
+                    }
+                    new_map[key] = updated
+                    Json::object(new_map)
+                  }
+                  _ => obj
+                }
+              @ast.Expr::Index(indices) =>
+                // Navigate to index, update the right path within it
+                match obj {
+                  Array(arr) => {
+                    if indices.is_empty() || indices.length() != 1 {
+                      return obj
+                    }
+                    let idx = indices[0]
+                    if idx < 0 || idx >= arr.length() {
+                      return obj
+                    }
+                    let current = arr[idx]
+                    let updated = apply_update(current, right, upd)
+                    let new_arr = arr.copy()
+                    new_arr[idx] = updated
+                    Json::array(new_arr)
+                  }
+                  _ => obj
+                }
+              _ => {
+                // For complex left paths, navigate and recurse
+                let navigated = eval_with_env(left, obj, env).collect()
+                if navigated.is_empty() {
+                  return obj
+                }
+                apply_update(navigated[0], right, upd)
+              }
+            }
+          _ => {
+            // For other complex paths, fall back to simple replacement
+            let current_results = eval_with_env(p, obj, env).collect()
+            if current_results.is_empty() {
+              return obj
+            }
+            let current = current_results[0]
+            let updated_results = eval_with_env(upd, current, env).collect()
+            if updated_results.is_empty() {
+              obj
+            } else {
+              updated_results[0]
+            }
+          }
+        }
       }
-      let current = current_results[0]
-      let updated_results = eval_with_env(update_expr, current, env).collect()
-      if updated_results.is_empty() {
-        Iter::singleton(input)
-      } else {
-        Iter::singleton(updated_results[0])
-      }
+
+      Iter::singleton(apply_update(input, path, update_expr))
     }
 
     // Assign operator: set value at path

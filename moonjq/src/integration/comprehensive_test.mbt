@@ -158,39 +158,71 @@ test "def: function with array manipulation" {
 
 ///|
 test "compound assignment: += with number" {
-  inspect(test_query(".x += 5", "{\"x\":10}"), content="Number(15)")
+  inspect(
+    test_query(".x += 5", "{\"x\":10}"),
+    content=(
+      #|Object({"x": Number(15)})
+    ),
+  )
 }
 
 ///|
 test "compound assignment: -= with number" {
-  inspect(test_query(".x -= 3", "{\"x\":10}"), content="Number(7)")
+  inspect(
+    test_query(".x -= 3", "{\"x\":10}"),
+    content=(
+      #|Object({"x": Number(7)})
+    ),
+  )
 }
 
 ///|
 test "compound assignment: *= with number" {
-  inspect(test_query(".x *= 3", "{\"x\":4}"), content="Number(12)")
+  inspect(
+    test_query(".x *= 3", "{\"x\":4}"),
+    content=(
+      #|Object({"x": Number(12)})
+    ),
+  )
 }
 
 ///|
 test "compound assignment: /= with number" {
-  inspect(test_query(".x /= 2", "{\"x\":20}"), content="Number(10)")
+  inspect(
+    test_query(".x /= 2", "{\"x\":20}"),
+    content=(
+      #|Object({"x": Number(10)})
+    ),
+  )
 }
 
 ///|
 test "compound assignment: %= modulo" {
-  inspect(test_query(".x %= 3", "{\"x\":10}"), content="Number(1)")
+  inspect(
+    test_query(".x %= 3", "{\"x\":10}"),
+    content=(
+      #|Object({"x": Number(1)})
+    ),
+  )
 }
 
 ///|
 test "compound assignment: //= alternative" {
-  inspect(test_query(".x //= 42", "{\"y\":10}"), content="Number(42)")
+  inspect(
+    test_query(".x //= 42", "{\"y\":10}"),
+    content=(
+      #|Object({"y": Number(10), "x": Number(42)})
+    ),
+  )
 }
 
 ///|
 test "compound assignment: += with array concat" {
   inspect(
     test_query(".items += [4,5]", "{\"items\":[1,2,3]}"),
-    content="Array([Number(1), Number(2), Number(3), Number(4), Number(5)])",
+    content=(
+      #|Object({"items": Array([Number(1), Number(2), Number(3), Number(4), Number(5)])})
+    ),
   )
 }
 
@@ -199,7 +231,7 @@ test "compound assignment: += with string concat" {
   inspect(
     test_query(".msg += \" World\"", "{\"msg\":\"Hello\"}"),
     content=(
-      #|String("Hello World")
+      #|Object({"msg": String("Hello World")})
     ),
   )
 }

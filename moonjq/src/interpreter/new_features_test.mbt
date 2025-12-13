@@ -172,7 +172,7 @@ test "reduce expression" {
   inspect(
     result,
     content=(
-      #|Err("UnexpectedToken(\"TReduce\", \"expression\")")
+      #|Ok([Number(15)])
     ),
   )
 }
@@ -180,5 +180,5 @@ test "reduce expression" {
 ///|
 test "as expression" {
   let result = run_jq(".a as $x | .b + $x", "{\"a\":10,\"b\":5}")
-  inspect(result, content="Ok([Number(10)])")
+  inspect(result, content="Ok([Number(15)])")
 }

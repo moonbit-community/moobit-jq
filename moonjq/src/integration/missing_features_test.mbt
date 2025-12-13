@@ -179,7 +179,10 @@ test "missing: exp function" {
 
 ///|
 test "missing: update operator |=" {
-  inspect(test_feature(".a |= . + 1", "{\"a\":5}"), content="Number(6)")
+  inspect(
+    test_feature(".a |= . + 1", "{\"a\":5}"),
+    content="Object({\"a\": Number(6)})",
+  )
 }
 
 ///|
@@ -199,32 +202,50 @@ test "missing: alternative operator //" {
 
 ///|
 test "missing: += operator" {
-  inspect(test_feature(".a += 5", "{\"a\":10}"), content="Number(15)")
+  inspect(
+    test_feature(".a += 5", "{\"a\":10}"),
+    content="Object({\"a\": Number(15)})",
+  )
 }
 
 ///|
 test "missing: -= operator" {
-  inspect(test_feature(".a -= 3", "{\"a\":10}"), content="Number(7)")
+  inspect(
+    test_feature(".a -= 3", "{\"a\":10}"),
+    content="Object({\"a\": Number(7)})",
+  )
 }
 
 ///|
 test "missing: *= operator" {
-  inspect(test_feature(".a *= 2", "{\"a\":10}"), content="Number(20)")
+  inspect(
+    test_feature(".a *= 2", "{\"a\":10}"),
+    content="Object({\"a\": Number(20)})",
+  )
 }
 
 ///|
 test "missing: /= operator" {
-  inspect(test_feature(".a /= 2", "{\"a\":10}"), content="Number(5)")
+  inspect(
+    test_feature(".a /= 2", "{\"a\":10}"),
+    content="Object({\"a\": Number(5)})",
+  )
 }
 
 ///|
 test "missing: %= operator" {
-  inspect(test_feature(".a %= 3", "{\"a\":10}"), content="Number(1)")
+  inspect(
+    test_feature(".a %= 3", "{\"a\":10}"),
+    content="Object({\"a\": Number(1)})",
+  )
 }
 
 ///|
 test "missing: //= operator" {
-  inspect(test_feature(".a //= 99", "{}"), content="Number(99)")
+  inspect(
+    test_feature(".a //= 99", "{}"),
+    content="Object({\"a\": Number(99)})",
+  )
 }
 
 ///|
