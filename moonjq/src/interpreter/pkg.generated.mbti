@@ -1,0 +1,28 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/moonjq/interpreter"
+
+import(
+  "moonbitlang/moonjq/ast"
+)
+
+// Values
+pub fn eval(@ast.Expr, Json) -> Iter[Json] raise
+
+// Errors
+pub(all) suberror InterpreterError {
+  TypeMismatch(String, String)
+  KeyNotFound(String)
+  IndexOutOfBounds(Int)
+  InvalidOperation(String)
+  DivisionByZero
+}
+pub impl Eq for InterpreterError
+pub impl Show for InterpreterError
+
+// Types and methods
+type Env
+
+// Type aliases
+
+// Traits
+

@@ -38,6 +38,31 @@ pub(all) enum Expr {
   Sqrt // sqrt
   Min // min
   Max // max
+  Round // round
+  Ceil // ceil
+  Abs // abs
+  // String operations
+  Split(String) // split(sep)
+  Join(String) // join(sep)
+  StartsWith(String) // startswith(str)
+  EndsWith(String) // endswith(str)
+  Contains(Expr) // contains(value)
+  Inside(Expr) // inside(value)
+  // Object/Array operations
+  Has(String) // has(key)
+  In(Expr) // in(object)
+  ToEntries // to_entries
+  FromEntries // from_entries
+  WithEntries(Expr) // with_entries(expr)
+  // Iteration helpers
+  Range(Int) // range(n)
+  First // first
+  Last // last
+  IndicesOf(Expr) // indices(value) - find all indices
+  IndexOf(Expr) // index(value) - find first index
+  // Predicates
+  Any // any
+  All // all
   // Control flow (Phase 2c)
   IfThenElse(Expr, Expr, Expr) // if cond then a else b end
   TryCatch(Expr, Expr?) // try expr catch handler

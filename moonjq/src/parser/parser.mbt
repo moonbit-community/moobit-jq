@@ -554,6 +554,130 @@ fn Parser::parse_builtin(
     "sqrt" => @ast.Expr::Sqrt
     "min" => @ast.Expr::Min
     "max" => @ast.Expr::Max
+    "round" => @ast.Expr::Round
+    "ceil" => @ast.Expr::Ceil
+    "abs" => @ast.Expr::Abs
+    "split" => {
+      self.expect(@lexer.Token::TLParen)
+      match self.current() {
+        Some(@lexer.Token::TString(sep)) => {
+          self.advance()
+          self.expect(@lexer.Token::TRParen)
+          @ast.Expr::Split(sep)
+        }
+        _ => raise ParseError::InvalidSyntax("split expects string argument")
+      }
+    }
+    "join" => {
+      self.expect(@lexer.Token::TLParen)
+      match self.current() {
+        Some(@lexer.Token::TString(sep)) => {
+          self.advance()
+          self.expect(@lexer.Token::TRParen)
+          @ast.Expr::Join(sep)
+        }
+        _ => raise ParseError::InvalidSyntax("join expects string argument")
+      }
+    }
+    "startswith" => {
+      self.expect(@lexer.Token::TLParen)
+      match self.current() {
+        Some(@lexer.Token::TString(prefix)) => {
+          self.advance()
+          self.expect(@lexer.Token::TRParen)
+          @ast.Expr::StartsWith(prefix)
+        }
+        _ =>
+          raise ParseError::InvalidSyntax("startswith expects string argument")
+      }
+    }
+    "endswith" => {
+      self.expect(@lexer.Token::TLParen)
+      match self.current() {
+        Some(@lexer.Token::TString(suffix)) => {
+          self.advance()
+          self.expect(@lexer.Token::TRParen)
+          @ast.Expr::EndsWith(suffix)
+        }
+        _ => raise ParseError::InvalidSyntax("endswith expects string argument")
+      }
+    }
+    "contains" => {
+      self.expect(@lexer.Token::TLParen)
+      let expr = self.parse_pipe()
+      self.expect(@lexer.Token::TRParen)
+      @ast.Expr::Contains(expr)
+    }
+    "inside" => {
+      self.expect(@lexer.Token::TLParen)
+      let expr = self.parse_pipe()
+      self.expect(@lexer.Token::TRParen)
+      @ast.Expr::Inside(expr)
+    }
+    "has" => {
+      self.expect(@lexer.Token::TLParen)
+      match self.current() {
+        Some(@lexer.Token::TString(key)) => {
+          self.advance()
+          self.expect(@lexer.Token::TRParen)
+          @ast.Expr::Has(key)
+        }
+        _ => raise ParseError::InvalidSyntax("has expects string argument")
+      }
+    }
+    "in" => {
+      self.expect(@lexer.Token::TLParen)
+      let expr = self.parse_pipe()
+      self.expect(@lexer.Token::TRParen)
+      @ast.Expr::In(expr)
+    }
+    "to_entries" => @ast.Expr::ToEntries
+    "from_entries" => @ast.Expr::FromEntries
+    "with_entries" => {
+      self.expect(@lexer.Token::TLParen)
+      let expr = self.parse_pipe()
+      self.expect(@lexer.Token::TRParen)
+      @ast.Expr::WithEntries(expr)
+    }
+    "range" => {
+      self.expect(@lexer.Token::TLParen)
+      match self.current() {
+        Some(@lexer.Token::TNumber(n)) => {
+          self.advance()
+          self.expect(@lexer.Token::TRParen)
+          @ast.Expr::Range(n.to_int())
+        }
+        _ => raise ParseError::InvalidSyntax("range expects number argument")
+      }
+    }
+    "first" => @ast.Expr::First
+    "last" => @ast.Expr::Last
+    "indices" => {
+      self.expect(@lexer.Token::TLParen)
+      let expr = self.parse_pipe()
+      self.expect(@lexer.Token::TRParen)
+      @ast.Expr::IndicesOf(expr)
+    }
+    "index" => {
+      self.expect(@lexer.Token::TLParen)
+      let expr = self.parse_pipe()
+      self.expect(@lexer.Token::TRParen)
+      @ast.Expr::IndexOf(expr)
+    }
+    "any" => @ast.Expr::Any
+    "all" => @ast.Expr::All
+    "sort_by" => {
+      self.expect(@lexer.Token::TLParen)
+      let expr = self.parse_pipe()
+      self.expect(@lexer.Token::TRParen)
+      @ast.Expr::SortBy(expr)
+    }
+    "group_by" => {
+      self.expect(@lexer.Token::TLParen)
+      let expr = self.parse_pipe()
+      self.expect(@lexer.Token::TRParen)
+      @ast.Expr::GroupBy(expr)
+    }
     _ => raise ParseError::InvalidSyntax("Unknown function: \{name}")
   }
 }

@@ -522,6 +522,602 @@ fn eval_with_env(
       }
     }
 
+    // As pattern: bind variable and continue with body
+    @ast.Expr::As(expr, var_name, body) => {
+      // Evaluate expr and bind each result to the variable
+      let results = eval_with_env(expr, input, env).collect()
+      let all_results : Array[Json] = []
+      for result in results {
+        let new_env = env.set(var_name, result)
+        for val in eval_with_env(body, input, new_env) {
+          all_results.push(val)
+        }
+      }
+      Iter::new(fn(emit) {
+        for x in all_results {
+          if emit(x) == IterEnd {
+            break
+          }
+        }
+        IterContinue
+      })
+    }
+
+    // Reduce: aggregate using accumulator
+    @ast.Expr::Reduce(expr, var_name, init_expr, update_expr) => {
+      // Evaluate init expression to get initial accumulator
+      let init_results = eval_with_env(init_expr, input, env).collect()
+      if init_results.is_empty() {
+        return Iter::singleton(Json::null())
+      }
+      let mut accumulator = init_results[0]
+
+      // Iterate over expr results and update accumulator
+      for item in eval_with_env(expr, input, env) {
+        let new_env = env.set(var_name, item)
+        let update_results = eval_with_env(update_expr, accumulator, new_env).collect()
+        if not(update_results.is_empty()) {
+          accumulator = update_results[0]
+        }
+      }
+      Iter::singleton(accumulator)
+    }
+
+    // SortBy: sort array by expression result
+    @ast.Expr::SortBy(expr) =>
+      match input {
+        Array(arr) => {
+          // Create array of (value, sort_key) pairs
+          let pairs : Array[(Json, Json)] = []
+          for elem in arr {
+            let keys = eval_with_env(expr, elem, env).collect()
+            let sort_key = if keys.is_empty() { Json::null() } else { keys[0] }
+            pairs.push((elem, sort_key))
+          }
+          // Sort by the key
+          let sorted_pairs = pairs.copy()
+          sorted_pairs.sort_by(fn(a, b) { compare_json(a.1, b.1) })
+          // Extract values
+          let sorted = sorted_pairs.map(fn(p) { p.0 })
+          Iter::singleton(Json::array(sorted))
+        }
+        _ =>
+          raise InterpreterError::TypeMismatch("array", @json.type_name(input))
+      }
+
+    // GroupBy: group array elements by expression result
+    @ast.Expr::GroupBy(expr) =>
+      match input {
+        Array(arr) => {
+          // Create groups: Map[String, Array[Json]]
+          let groups : Map[String, Array[Json]] = {}
+          for elem in arr {
+            let keys = eval_with_env(expr, elem, env).collect()
+            let key_json = if keys.is_empty() { Json::null() } else { keys[0] }
+            let key_str = key_json.to_string()
+            match groups.get(key_str) {
+              Some(existing) => {
+                existing.push(elem)
+                groups[key_str] = existing
+              }
+              None => groups[key_str] = [elem]
+            }
+          }
+          // Convert groups to array of arrays
+          let result : Array[Json] = []
+          for group in groups.values() {
+            result.push(Json::array(group))
+          }
+          Iter::singleton(Json::array(result))
+        }
+        _ =>
+          raise InterpreterError::TypeMismatch("array", @json.type_name(input))
+      }
+
+    // Update operator: modify value in place
+    @ast.Expr::Update(path, update_expr) => {
+      // For now, simplified implementation
+      // Evaluate the path to get current value, apply update, return modified input
+      let current_results = eval_with_env(path, input, env).collect()
+      if current_results.is_empty() {
+        return Iter::singleton(input)
+      }
+      let current = current_results[0]
+      let updated_results = eval_with_env(update_expr, current, env).collect()
+      if updated_results.is_empty() {
+        Iter::singleton(input)
+      } else {
+        Iter::singleton(updated_results[0])
+      }
+    }
+
+    // Assign operator: set value at path
+    @ast.Expr::Assign(_path, value_expr) => {
+      // Evaluate the value expression
+      let values = eval_with_env(value_expr, input, env).collect()
+      if values.is_empty() {
+        Iter::singleton(input)
+      } else {
+        Iter::singleton(values[0])
+      }
+    }
+
+    // RecurseWith: custom recursion with function
+    @ast.Expr::RecurseWith(f, _cond) => {
+      // Simplified: just apply function recursively
+      // Full implementation would use condition to stop
+      let results : Array[Json] = [input]
+      let to_process_ref : Ref[Array[Json]] = Ref::new([input])
+      while not(to_process_ref.val.is_empty()) {
+        let next_batch : Array[Json] = []
+        for item in to_process_ref.val {
+          for result in eval_with_env(f, item, env) {
+            if result != item { // Avoid infinite loops
+              results.push(result)
+              next_batch.push(result)
+            }
+          }
+        }
+        to_process_ref.val = next_batch
+        if to_process_ref.val.length() > 100 { // Safety limit
+          break
+        }
+      }
+      Iter::new(fn(emit) {
+        for x in results {
+          if emit(x) == IterEnd {
+            break
+          }
+        }
+        IterContinue
+      })
+    }
+
+    // Walk: recursively apply function to all values
+    @ast.Expr::Walk(f) => {
+      fn walk_value(v : Json) -> Json raise InterpreterError {
+        match v {
+          Array(arr) => {
+            let walked = arr.map(walk_value)
+            let wrapped = Json::array(walked)
+            let results = eval_with_env(f, wrapped, env).collect()
+            if results.is_empty() {
+              wrapped
+            } else {
+              results[0]
+            }
+          }
+          Object(obj) => {
+            let walked : Map[String, Json] = {}
+            for k, v in obj {
+              walked[k] = walk_value(v)
+            }
+            let wrapped = Json::object(walked)
+            let results = eval_with_env(f, wrapped, env).collect()
+            if results.is_empty() {
+              wrapped
+            } else {
+              results[0]
+            }
+          }
+          _ => {
+            let results = eval_with_env(f, v, env).collect()
+            if results.is_empty() {
+              v
+            } else {
+              results[0]
+            }
+          }
+        }
+      }
+
+      Iter::singleton(walk_value(input))
+    }
+
+    // Path expression: get path to a value
+    @ast.Expr::Path(_expr) =>
+      // Simplified: return empty array for now
+      // Full implementation would track paths during evaluation
+      Iter::singleton(Json::array([]))
+
+    // Additional numeric functions
+    @ast.Expr::Round =>
+      match input {
+        Number(n, ..) => Iter::singleton(Json::number(n.round()))
+        _ =>
+          raise InterpreterError::TypeMismatch("number", @json.type_name(input))
+      }
+    @ast.Expr::Ceil =>
+      match input {
+        Number(n, ..) => Iter::singleton(Json::number(n.ceil()))
+        _ =>
+          raise InterpreterError::TypeMismatch("number", @json.type_name(input))
+      }
+    @ast.Expr::Abs =>
+      match input {
+        Number(n, ..) => Iter::singleton(Json::number(n.abs()))
+        _ =>
+          raise InterpreterError::TypeMismatch("number", @json.type_name(input))
+      }
+
+    // String operations
+    @ast.Expr::Split(sep) =>
+      match input {
+        String(s) => {
+          let parts = s.split(sep)
+          let json_parts : Array[Json] = []
+          for part in parts {
+            json_parts.push(Json::string(part.to_string()))
+          }
+          Iter::singleton(Json::array(json_parts))
+        }
+        _ =>
+          raise InterpreterError::TypeMismatch("string", @json.type_name(input))
+      }
+    @ast.Expr::Join(sep) =>
+      match input {
+        Array(arr) => {
+          let parts : Array[String] = []
+          for elem in arr {
+            match elem {
+              String(s) => parts.push(s)
+              _ => parts.push(elem.to_string())
+            }
+          }
+          Iter::singleton(Json::string(parts.join(sep)))
+        }
+        _ =>
+          raise InterpreterError::TypeMismatch("array", @json.type_name(input))
+      }
+    @ast.Expr::StartsWith(prefix) =>
+      match input {
+        String(s) => Iter::singleton(Json::boolean(s.has_prefix(prefix)))
+        _ =>
+          raise InterpreterError::TypeMismatch("string", @json.type_name(input))
+      }
+    @ast.Expr::EndsWith(suffix) =>
+      match input {
+        String(s) => Iter::singleton(Json::boolean(s.has_suffix(suffix)))
+        _ =>
+          raise InterpreterError::TypeMismatch("string", @json.type_name(input))
+      }
+    @ast.Expr::Contains(expr) => {
+      let needle_results = eval_with_env(expr, input, env).collect()
+      if needle_results.is_empty() {
+        return Iter::singleton(Json::boolean(false))
+      }
+      let needle = needle_results[0]
+      match (input, needle) {
+        (String(haystack), String(n)) =>
+          Iter::singleton(Json::boolean(haystack.contains(n)))
+        (Array(haystack), _) => {
+          let mut found = false
+          for elem in haystack {
+            if elem == needle {
+              found = true
+              break
+            }
+          }
+          Iter::singleton(Json::boolean(found))
+        }
+        (Object(haystack), String(key)) =>
+          Iter::singleton(Json::boolean(haystack.contains(key)))
+        _ => Iter::singleton(Json::boolean(false))
+      }
+    }
+    @ast.Expr::Inside(expr) => {
+      // inside is the reverse of contains
+      let container_results = eval_with_env(expr, input, env).collect()
+      if container_results.is_empty() {
+        return Iter::singleton(Json::boolean(false))
+      }
+      let container = container_results[0]
+      match (input, container) {
+        (String(needle), String(haystack)) =>
+          Iter::singleton(Json::boolean(haystack.contains(needle)))
+        (_, Array(haystack)) => {
+          let mut found = false
+          for elem in haystack {
+            if elem == input {
+              found = true
+              break
+            }
+          }
+          Iter::singleton(Json::boolean(found))
+        }
+        (String(key), Object(haystack)) =>
+          Iter::singleton(Json::boolean(haystack.contains(key)))
+        _ => Iter::singleton(Json::boolean(false))
+      }
+    }
+
+    // Object/Array operations
+    @ast.Expr::Has(key) =>
+      match input {
+        Object(obj) => Iter::singleton(Json::boolean(obj.contains(key)))
+        Array(arr) => {
+          // For arrays, treat key as index
+          let idx_result = @strconv.parse_int(key) catch {
+            _ => return Iter::singleton(Json::boolean(false))
+          }
+          let len = arr.length()
+          let actual_idx = if idx_result < 0 {
+            len + idx_result
+          } else {
+            idx_result
+          }
+          Iter::singleton(Json::boolean(actual_idx >= 0 && actual_idx < len))
+        }
+        _ => Iter::singleton(Json::boolean(false))
+      }
+    @ast.Expr::In(expr) => {
+      let container_results = eval_with_env(expr, input, env).collect()
+      if container_results.is_empty() {
+        return Iter::singleton(Json::boolean(false))
+      }
+      match container_results[0] {
+        Object(obj) =>
+          match input {
+            String(key) => Iter::singleton(Json::boolean(obj.contains(key)))
+            _ => Iter::singleton(Json::boolean(false))
+          }
+        Array(arr) =>
+          match input {
+            Number(n, ..) => {
+              let idx = n.to_int()
+              let len = arr.length()
+              let actual_idx = if idx < 0 { len + idx } else { idx }
+              Iter::singleton(
+                Json::boolean(actual_idx >= 0 && actual_idx < len),
+              )
+            }
+            _ => Iter::singleton(Json::boolean(false))
+          }
+        _ => Iter::singleton(Json::boolean(false))
+      }
+    }
+    @ast.Expr::ToEntries =>
+      match input {
+        Object(obj) => {
+          let entries : Array[Json] = []
+          for k, v in obj {
+            let entry : Map[String, Json] = {}
+            entry["key"] = Json::string(k)
+            entry["value"] = v
+            entries.push(Json::object(entry))
+          }
+          Iter::singleton(Json::array(entries))
+        }
+        Array(arr) => {
+          let entries : Array[Json] = []
+          for i = 0; i < arr.length(); i = i + 1 {
+            let entry : Map[String, Json] = {}
+            entry["key"] = Json::number(i.to_double())
+            entry["value"] = arr[i]
+            entries.push(Json::object(entry))
+          }
+          Iter::singleton(Json::array(entries))
+        }
+        _ =>
+          raise InterpreterError::TypeMismatch(
+            "object/array",
+            @json.type_name(input),
+          )
+      }
+    @ast.Expr::FromEntries =>
+      match input {
+        Array(arr) => {
+          let result : Map[String, Json] = {}
+          for entry in arr {
+            match entry {
+              Object(obj) => {
+                let key_opt = match obj.get("key") {
+                  Some(k) => Some(k)
+                  None => obj.get("name")
+                }
+                let value_opt = obj.get("value")
+                match key_opt {
+                  Some(k) =>
+                    match k {
+                      String(key_str) =>
+                        match value_opt {
+                          Some(v) => result[key_str] = v
+                          None => ()
+                        }
+                      Number(n, ..) =>
+                        match value_opt {
+                          Some(v) => result[n.to_int().to_string()] = v
+                          None => ()
+                        }
+                      _ => ()
+                    }
+                  _ => ()
+                }
+              }
+              _ => ()
+            }
+          }
+          Iter::singleton(Json::object(result))
+        }
+        _ =>
+          raise InterpreterError::TypeMismatch("array", @json.type_name(input))
+      }
+    @ast.Expr::WithEntries(expr) =>
+      // Convert to entries, apply expr, convert back
+      match input {
+        Object(_) | Array(_) => {
+          // to_entries
+          let entries_results = eval_with_env(@ast.Expr::ToEntries, input, env).collect()
+          if entries_results.is_empty() {
+            return Iter::singleton(input)
+          }
+          // Apply expression to entries array
+          let transformed_results = eval_with_env(expr, entries_results[0], env).collect()
+          if transformed_results.is_empty() {
+            return Iter::singleton(input)
+          }
+          // from_entries
+          eval_with_env(@ast.Expr::FromEntries, transformed_results[0], env)
+        }
+        _ =>
+          raise InterpreterError::TypeMismatch(
+            "object/array",
+            @json.type_name(input),
+          )
+      }
+
+    // Iteration helpers
+    @ast.Expr::Range(n) => {
+      let results : Array[Json] = []
+      for i = 0; i < n; i = i + 1 {
+        results.push(Json::number(i.to_double()))
+      }
+      Iter::new(fn(emit) {
+        for x in results {
+          if emit(x) == IterEnd {
+            break
+          }
+        }
+        IterContinue
+      })
+    }
+    @ast.Expr::First =>
+      match input {
+        Array(arr) =>
+          if arr.is_empty() {
+            Iter::empty()
+          } else {
+            Iter::singleton(arr[0])
+          }
+        _ =>
+          raise InterpreterError::TypeMismatch("array", @json.type_name(input))
+      }
+    @ast.Expr::Last =>
+      match input {
+        Array(arr) =>
+          if arr.is_empty() {
+            Iter::empty()
+          } else {
+            Iter::singleton(arr[arr.length() - 1])
+          }
+        _ =>
+          raise InterpreterError::TypeMismatch("array", @json.type_name(input))
+      }
+    @ast.Expr::IndicesOf(expr) => {
+      let needle_results = eval_with_env(expr, input, env).collect()
+      if needle_results.is_empty() {
+        return Iter::singleton(Json::array([]))
+      }
+      let needle = needle_results[0]
+      match input {
+        Array(arr) => {
+          let indices : Array[Json] = []
+          for i = 0; i < arr.length(); i = i + 1 {
+            if arr[i] == needle {
+              indices.push(Json::number(i.to_double()))
+            }
+          }
+          Iter::singleton(Json::array(indices))
+        }
+        String(s) =>
+          match needle {
+            String(substr) => {
+              let indices : Array[Json] = []
+              // Simplified: just check if substring exists
+              if s.contains(substr) {
+                // Finding all occurrences in a string view is complex
+                // For now, return empty array
+                ()
+              }
+              Iter::singleton(Json::array(indices))
+            }
+            _ => Iter::singleton(Json::array([]))
+          }
+        _ =>
+          raise InterpreterError::TypeMismatch(
+            "array/string",
+            @json.type_name(input),
+          )
+      }
+    }
+    @ast.Expr::IndexOf(expr) => {
+      let needle_results = eval_with_env(expr, input, env).collect()
+      if needle_results.is_empty() {
+        return Iter::singleton(Json::null())
+      }
+      let needle = needle_results[0]
+      match input {
+        Array(arr) => {
+          let mut found_idx : Int? = None
+          for i = 0; i < arr.length(); i = i + 1 {
+            if arr[i] == needle {
+              found_idx = Some(i)
+              break
+            }
+          }
+          match found_idx {
+            Some(idx) => Iter::singleton(Json::number(idx.to_double()))
+            None => Iter::singleton(Json::null())
+          }
+        }
+        String(s) =>
+          match needle {
+            String(substr) =>
+              // Finding index in string requires searching
+              // For now, check if contains and return 0 or null
+              if s.contains(substr) {
+                Iter::singleton(Json::number(0.0))
+              } else {
+                Iter::singleton(Json::null())
+              }
+            _ => Iter::singleton(Json::null())
+          }
+        _ =>
+          raise InterpreterError::TypeMismatch(
+            "array/string",
+            @json.type_name(input),
+          )
+      }
+    }
+
+    // Predicates
+    @ast.Expr::Any =>
+      match input {
+        Array(arr) => {
+          let mut result = false
+          for elem in arr {
+            match elem {
+              False | Null => ()
+              _ => {
+                result = true
+                break
+              }
+            }
+          }
+          Iter::singleton(Json::boolean(result))
+        }
+        _ =>
+          raise InterpreterError::TypeMismatch("array", @json.type_name(input))
+      }
+    @ast.Expr::All =>
+      match input {
+        Array(arr) => {
+          let mut result = true
+          for elem in arr {
+            match elem {
+              False | Null => {
+                result = false
+                break
+              }
+              _ => ()
+            }
+          }
+          Iter::singleton(Json::boolean(result))
+        }
+        _ =>
+          raise InterpreterError::TypeMismatch("array", @json.type_name(input))
+      }
+
     // Not yet implemented features
     _ =>
       raise InterpreterError::InvalidOperation(

@@ -56,6 +56,27 @@ pub(all) enum Expr {
   Sqrt
   Min
   Max
+  Round
+  Ceil
+  Abs
+  Split(String)
+  Join(String)
+  StartsWith(String)
+  EndsWith(String)
+  Contains(Expr)
+  Inside(Expr)
+  Has(String)
+  In(Expr)
+  ToEntries
+  FromEntries
+  WithEntries(Expr)
+  Range(Int)
+  First
+  Last
+  IndicesOf(Expr)
+  IndexOf(Expr)
+  Any
+  All
   IfThenElse(Expr, Expr, Expr)
   TryCatch(Expr, Expr?)
   Variable(String)
