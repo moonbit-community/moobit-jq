@@ -1,7 +1,7 @@
 {
   "import": [
-    "moonbitlang/moonjq/parser",
-    "moonbitlang/moonjq/interpreter",
-    "moonbitlang/moonjq/json"
+    "bobzhang/moonjq/parser",
+    "bobzhang/moonjq/interpreter",
+    "bobzhang/moonjq/json"
   ]
 }

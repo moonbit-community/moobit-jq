@@ -1,6 +1,6 @@
 {
   "import": [
-    "moonbitlang/moonjq/ast",
-    "moonbitlang/moonjq/lexer"
+    "bobzhang/moonjq/ast",
+    "bobzhang/moonjq/lexer"
   ]
 }

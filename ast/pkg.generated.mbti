@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/moonjq/ast"
+package "bobzhang/moonjq/ast"
 
 // Values
 

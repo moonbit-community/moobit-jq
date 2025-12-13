@@ -1,7 +1,7 @@
 {
-  "name": "moonbitlang/moonjq",
+  "name": "bobzhang/moonjq",
   "version": "0.1.0",
-  "repository": "",
+  "repository": "git@github.com:moonbit-community/moobit-jq.git",
   "keywords": ["jq", "json", "query"],
   "description": "A jq implementation in MoonBit"
 }

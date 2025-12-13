@@ -1,0 +1,22 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/moonjq"
+
+import(
+  "bobzhang/moonjq/ast"
+)
+
+// Values
+pub fn eval(@ast.Expr, Json) -> Iterator[Json] raise
+
+pub fn parse(String) -> @ast.Expr raise
+
+pub fn run(String, String) -> Iterator[Json] raise
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

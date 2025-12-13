@@ -134,7 +134,9 @@ fn eval_with_env(
         }
       } else {
         // Multiple indices produce multiple results
-        indices.iterator().map(fn(idx) {
+        indices
+        .iterator()
+        .map(fn(idx) {
           match input {
             Array(arr) => {
               let i = if idx < 0 { arr.length() + idx } else { idx }
@@ -1166,7 +1168,9 @@ fn eval_with_env(
           } else {
             idx_result
           }
-          Iterator::singleton(Json::boolean(actual_idx >= 0 && actual_idx < len))
+          Iterator::singleton(
+            Json::boolean(actual_idx >= 0 && actual_idx < len),
+          )
         }
         _ => Iterator::singleton(Json::boolean(false))
       }
@@ -1441,7 +1445,9 @@ fn eval_with_env(
       match input {
         String(s) =>
           if s.has_prefix(prefix) {
-            Iterator::singleton(Json::string(s.substring(start=prefix.length())))
+            Iterator::singleton(
+              Json::string(s.substring(start=prefix.length())),
+            )
           } else {
             Iterator::singleton(input)
           }
@@ -1672,9 +1678,7 @@ fn eval_with_env(
     }
 
     // Control flow
-    @ast.Expr::Limit(n, expr) => {
-      eval_with_env(expr, input, env).take(n)
-    }
+    @ast.Expr::Limit(n, expr) => eval_with_env(expr, input, env).take(n)
     @ast.Expr::Until(cond_expr, update_expr) => {
       let mut current = input
       while true {
@@ -2011,7 +2015,8 @@ fn eval_with_env(
         _ =>
           raise InterpreterError::TypeMismatch("array", @json.type_name(input))
       }
-    @ast.Expr::ToJsonString => Iterator::singleton(Json::string(input.to_string()))
+    @ast.Expr::ToJsonString =>
+      Iterator::singleton(Json::string(input.to_string()))
     @ast.Expr::FromJsonString =>
       match input {
         String(s) => {
@@ -2541,7 +2546,8 @@ fn flatten_array(arr : Array[Json], depth : Int) -> Array[Json] {
 /// Recursive descent: yield input and all nested values
 fn recurse_all(input : Json) -> Iterator[Json] {
   match input {
-    Array(arr) => Iterator::singleton(input).concat(arr.iterator().flat_map(recurse_all))
+    Array(arr) =>
+      Iterator::singleton(input).concat(arr.iterator().flat_map(recurse_all))
     Object(obj) => {
       let mut values : Array[Json] = []
       for _k, v in obj {

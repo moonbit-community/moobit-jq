@@ -1,8 +1,8 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/moonjq/parser"
+package "bobzhang/moonjq/parser"
 
 import(
-  "moonbitlang/moonjq/ast"
+  "bobzhang/moonjq/ast"
 )
 
 // Values

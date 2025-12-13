@@ -1,0 +1,11 @@
+{
+  "import": [
+    "bobzhang/moonjq/ast",
+    "bobzhang/moonjq/parser",
+    "bobzhang/moonjq/interpreter",
+    {
+      "path": "bobzhang/moonjq/json",
+      "alias": "moonjq_json"
+    }
+  ]
+}
