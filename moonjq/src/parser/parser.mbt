@@ -118,6 +118,30 @@ fn Parser::parse_assignment(self : Parser) -> @ast.Expr raise ParseError {
       self.advance()
       @ast.Expr::Alternative(expr, self.parse_or())
     }
+    Some(@lexer.Token::TAddAssign) => {
+      self.advance()
+      @ast.Expr::AddAssign(expr, self.parse_or())
+    }
+    Some(@lexer.Token::TSubAssign) => {
+      self.advance()
+      @ast.Expr::SubAssign(expr, self.parse_or())
+    }
+    Some(@lexer.Token::TMulAssign) => {
+      self.advance()
+      @ast.Expr::MulAssign(expr, self.parse_or())
+    }
+    Some(@lexer.Token::TDivAssign) => {
+      self.advance()
+      @ast.Expr::DivAssign(expr, self.parse_or())
+    }
+    Some(@lexer.Token::TModAssign) => {
+      self.advance()
+      @ast.Expr::ModAssign(expr, self.parse_or())
+    }
+    Some(@lexer.Token::TAltAssign) => {
+      self.advance()
+      @ast.Expr::AltAssign(expr, self.parse_or())
+    }
     _ => expr
   }
 }
@@ -405,6 +429,10 @@ fn Parser::parse_primary(self : Parser) -> @ast.Expr raise ParseError {
     Some(@lexer.Token::TVariable(name)) => {
       self.advance()
       @ast.Expr::Variable(name)
+    }
+    Some(@lexer.Token::TFormat(name)) => {
+      self.advance()
+      @ast.Expr::Format(name)
     }
     Some(@lexer.Token::TLParen) => {
       self.advance()

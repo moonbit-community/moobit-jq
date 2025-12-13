@@ -231,6 +231,23 @@ fn Lexer::lex_variable(self : Lexer) -> Unit raise LexError {
 }
 
 ///|
+/// Lex a format specifier (@base64, @uri, etc.)
+fn Lexer::lex_format(self : Lexer) -> Unit raise LexError {
+  self.advance()
+  let start = self.pos
+  while true {
+    match self.current() {
+      Some(c) if is_alnum(c) => self.advance()
+      _ => break
+    }
+  }
+  let name = self.input[start:self.pos].to_string() catch {
+    _ => raise LexError::UnexpectedChar(start, '@')
+  }
+  self.add_token(TFormat(name))
+}
+
+///|
 /// Main lexing function
 pub fn lex(input : String) -> Array[Token] raise LexError {
   let lexer = Lexer::new(input)
@@ -252,6 +269,8 @@ pub fn lex(input : String) -> Array[Token] raise LexError {
           lexer.lex_identifier()
         } else if c == '$' {
           lexer.lex_variable()
+        } else if c == '@' {
+          lexer.lex_format()
         } else {
           match c {
             '.' => {
@@ -276,7 +295,15 @@ pub fn lex(input : String) -> Array[Token] raise LexError {
               lexer.advance()
               if lexer.current() == Some('/') {
                 lexer.advance()
-                lexer.add_token(TAlternative)
+                if lexer.current() == Some('=') {
+                  lexer.advance()
+                  lexer.add_token(TAltAssign)
+                } else {
+                  lexer.add_token(TAlternative)
+                }
+              } else if lexer.current() == Some('=') {
+                lexer.advance()
+                lexer.add_token(TDivAssign)
               } else {
                 lexer.add_token(TSlash)
               }
@@ -359,19 +386,39 @@ pub fn lex(input : String) -> Array[Token] raise LexError {
             }
             '+' => {
               lexer.advance()
-              lexer.add_token(TPlus)
+              if lexer.current() == Some('=') {
+                lexer.advance()
+                lexer.add_token(TAddAssign)
+              } else {
+                lexer.add_token(TPlus)
+              }
             }
             '-' => {
               lexer.advance()
-              lexer.add_token(TMinus)
+              if lexer.current() == Some('=') {
+                lexer.advance()
+                lexer.add_token(TSubAssign)
+              } else {
+                lexer.add_token(TMinus)
+              }
             }
             '*' => {
               lexer.advance()
-              lexer.add_token(TStar)
+              if lexer.current() == Some('=') {
+                lexer.advance()
+                lexer.add_token(TMulAssign)
+              } else {
+                lexer.add_token(TStar)
+              }
             }
             '%' => {
               lexer.advance()
-              lexer.add_token(TPercent)
+              if lexer.current() == Some('=') {
+                lexer.advance()
+                lexer.add_token(TModAssign)
+              } else {
+                lexer.add_token(TPercent)
+              }
             }
             _ => raise LexError::UnexpectedChar(lexer.pos, c)
           }

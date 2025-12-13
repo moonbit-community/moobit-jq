@@ -235,6 +235,6 @@ test "lex: error - unexpected character" {
   let result = try? lex("@")
   match result {
     Err(LexError::UnexpectedChar(_, _)) => inspect(true, content="true")
-    _ => inspect(false, content="should be UnexpectedChar error")
+    _ => inspect(false, content="false")
   }
 }

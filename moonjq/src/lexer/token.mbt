@@ -9,6 +9,7 @@ pub(all) enum Token {
   TNull
   TIdentifier(String)
   TVariable(String) // $name
+  TFormat(String) // @base64, @uri, etc.
   // Operators
   TDot // .
   TDotDot // ..
@@ -41,6 +42,12 @@ pub(all) enum Token {
   TAssign // =
   TUpdate // |=
   TAlternative // //
+  TAddAssign // +=
+  TSubAssign // -=
+  TMulAssign // *=
+  TDivAssign // /=
+  TModAssign // %=
+  TAltAssign // //=
   // Keywords
   TAnd // and
   TOr // or

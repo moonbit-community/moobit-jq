@@ -204,62 +204,32 @@ test "missing: alternative operator //" {
 
 ///|
 test "missing: += operator" {
-  inspect(
-    test_feature(".a += 5", "{\"a\":10}"),
-    content=(
-      #|ParseError: UnexpectedToken("TAssign", "expression")
-    ),
-  )
+  inspect(test_feature(".a += 5", "{\"a\":10}"), content="Number(15)")
 }
 
 ///|
 test "missing: -= operator" {
-  inspect(
-    test_feature(".a -= 3", "{\"a\":10}"),
-    content=(
-      #|ParseError: UnexpectedToken("TAssign", "expression")
-    ),
-  )
+  inspect(test_feature(".a -= 3", "{\"a\":10}"), content="Number(7)")
 }
 
 ///|
 test "missing: *= operator" {
-  inspect(
-    test_feature(".a *= 2", "{\"a\":10}"),
-    content=(
-      #|ParseError: UnexpectedToken("TAssign", "expression")
-    ),
-  )
+  inspect(test_feature(".a *= 2", "{\"a\":10}"), content="Number(20)")
 }
 
 ///|
 test "missing: /= operator" {
-  inspect(
-    test_feature(".a /= 2", "{\"a\":10}"),
-    content=(
-      #|ParseError: UnexpectedToken("TAssign", "expression")
-    ),
-  )
+  inspect(test_feature(".a /= 2", "{\"a\":10}"), content="Number(5)")
 }
 
 ///|
 test "missing: %= operator" {
-  inspect(
-    test_feature(".a %= 3", "{\"a\":10}"),
-    content=(
-      #|ParseError: UnexpectedToken("TAssign", "expression")
-    ),
-  )
+  inspect(test_feature(".a %= 3", "{\"a\":10}"), content="Number(1)")
 }
 
 ///|
 test "missing: //= operator" {
-  inspect(
-    test_feature(".a //= 99", "{}"),
-    content=(
-      #|ParseError: UnexpectedToken("TAssign", "expression")
-    ),
-  )
+  inspect(test_feature(".a //= 99", "{}"), content="Number(99)")
 }
 
 ///|
@@ -274,7 +244,9 @@ test "missing: string interpolation" {
 test "missing: @base64 format" {
   inspect(
     test_feature("@base64", "\"hello\""),
-    content="ParseError: UnexpectedChar(0, '@')",
+    content=(
+      #|String("aGVsbG8=")
+    ),
   )
 }
 
@@ -282,7 +254,9 @@ test "missing: @base64 format" {
 test "missing: @base64d format" {
   inspect(
     test_feature("@base64d", "\"aGVsbG8=\""),
-    content="ParseError: UnexpectedChar(0, '@')",
+    content=(
+      #|String("hello")
+    ),
   )
 }
 
@@ -290,7 +264,9 @@ test "missing: @base64d format" {
 test "missing: @uri format" {
   inspect(
     test_feature("@uri", "\"hello world\""),
-    content="ParseError: UnexpectedChar(0, '@')",
+    content=(
+      #|String("hello+world")
+    ),
   )
 }
 
@@ -298,7 +274,9 @@ test "missing: @uri format" {
 test "missing: @csv format" {
   inspect(
     test_feature("@csv", "[[1,2,3]]"),
-    content="ParseError: UnexpectedChar(0, '@')",
+    content=(
+      #|String("Array([Number(1), Number(2), Number(3)])")
+    ),
   )
 }
 
@@ -306,7 +284,9 @@ test "missing: @csv format" {
 test "missing: @json format" {
   inspect(
     test_feature("@json", "{\"a\":1}"),
-    content="ParseError: UnexpectedChar(0, '@')",
+    content=(
+      #|String("Object({\"a\": Number(1)})")
+    ),
   )
 }
 
@@ -314,7 +294,9 @@ test "missing: @json format" {
 test "missing: @html format" {
   inspect(
     test_feature("@html", "\"<div>\""),
-    content="ParseError: UnexpectedChar(0, '@')",
+    content=(
+      #|String("&lt;div&gt;")
+    ),
   )
 }
 
@@ -322,7 +304,9 @@ test "missing: @html format" {
 test "missing: @text format" {
   inspect(
     test_feature("@text", "\"hello\""),
-    content="ParseError: UnexpectedChar(0, '@')",
+    content=(
+      #|String("String(\"hello\")")
+    ),
   )
 }
 

@@ -6,6 +6,8 @@ pub(all) suberror InterpreterError {
   IndexOutOfBounds(Int)
   InvalidOperation(String)
   DivisionByZero
+  TypeError(String)
+  EvalError(String)
 } derive(Eq, Show)
 
 ///|
@@ -521,6 +523,158 @@ fn eval_with_env(
         }
       }
     }
+
+    // Compound assignment operators: path += value
+    @ast.Expr::AddAssign(path, value_expr) =>
+      eval_with_env(
+        @ast.Expr::Update(
+          path,
+          @ast.Expr::Operation(
+            @ast.Expr::Identity,
+            @ast.BinaryOp::Add,
+            value_expr,
+          ),
+        ),
+        input,
+        env,
+      )
+    @ast.Expr::SubAssign(path, value_expr) =>
+      eval_with_env(
+        @ast.Expr::Update(
+          path,
+          @ast.Expr::Operation(
+            @ast.Expr::Identity,
+            @ast.BinaryOp::Subtract,
+            value_expr,
+          ),
+        ),
+        input,
+        env,
+      )
+    @ast.Expr::MulAssign(path, value_expr) =>
+      eval_with_env(
+        @ast.Expr::Update(
+          path,
+          @ast.Expr::Operation(
+            @ast.Expr::Identity,
+            @ast.BinaryOp::Multiply,
+            value_expr,
+          ),
+        ),
+        input,
+        env,
+      )
+    @ast.Expr::DivAssign(path, value_expr) =>
+      eval_with_env(
+        @ast.Expr::Update(
+          path,
+          @ast.Expr::Operation(
+            @ast.Expr::Identity,
+            @ast.BinaryOp::Divide,
+            value_expr,
+          ),
+        ),
+        input,
+        env,
+      )
+    @ast.Expr::ModAssign(path, value_expr) =>
+      eval_with_env(
+        @ast.Expr::Update(
+          path,
+          @ast.Expr::Operation(
+            @ast.Expr::Identity,
+            @ast.BinaryOp::Modulo,
+            value_expr,
+          ),
+        ),
+        input,
+        env,
+      )
+    @ast.Expr::AltAssign(path, value_expr) =>
+      eval_with_env(
+        @ast.Expr::Update(
+          path,
+          @ast.Expr::Alternative(@ast.Expr::Identity, value_expr),
+        ),
+        input,
+        env,
+      )
+
+    // Format functions: @base64, @uri, etc.
+    @ast.Expr::Format(format_name) =>
+      match format_name {
+        "base64" =>
+          match input {
+            String(s) => {
+              // Simple base64 encoding implementation
+              let bytes = @encoding/utf8.encode(s)
+              let encoded = base64_encode(bytes)
+              Iter::singleton(Json::string(encoded))
+            }
+            _ => raise InterpreterError::TypeError("@base64 requires string")
+          }
+        "base64d" =>
+          match input {
+            String(s) => {
+              // Simple base64 decoding implementation
+              let decoded_bytes = base64_decode(s) catch {
+                _ => raise InterpreterError::EvalError("Invalid base64")
+              }
+              let decoded_str = @encoding/utf8.decode(decoded_bytes) catch {
+                _ => raise InterpreterError::EvalError("Invalid UTF-8")
+              }
+              Iter::singleton(Json::string(decoded_str))
+            }
+            _ => raise InterpreterError::TypeError("@base64d requires string")
+          }
+        "uri" =>
+          match input {
+            String(s) => {
+              let encoded = uri_encode(s)
+              Iter::singleton(Json::string(encoded))
+            }
+            _ => raise InterpreterError::TypeError("@uri requires string")
+          }
+        "csv" | "tsv" =>
+          // Simple CSV/TSV formatting for arrays
+          match input {
+            Array(arr) => {
+              let sep = if format_name == "csv" { "," } else { "\t" }
+              let parts : Array[String] = []
+              for item in arr {
+                match item {
+                  String(s) =>
+                    // Quote if contains separator or quotes
+                    if s.contains(sep) || s.contains("\"") {
+                      let escaped = s.replace(old="\"", new="\"\"")
+                      parts.push("\"\{escaped}\"")
+                    } else {
+                      parts.push(s)
+                    }
+                  Number(n, ..) => parts.push(n.to_string())
+                  True => parts.push("true")
+                  False => parts.push("false")
+                  Null => parts.push("")
+                  _ => parts.push(item.to_string())
+                }
+              }
+              Iter::singleton(Json::string(parts.join(sep)))
+            }
+            _ => raise InterpreterError::TypeError("@csv/@tsv requires array")
+          }
+        "json" => Iter::singleton(Json::string(input.to_string()))
+        "text" => Iter::singleton(Json::string(input.to_string()))
+        "html" =>
+          match input {
+            String(s) => {
+              let escaped = html_escape(s)
+              Iter::singleton(Json::string(escaped))
+            }
+            _ => raise InterpreterError::TypeError("@html requires string")
+          }
+        _ =>
+          raise InterpreterError::EvalError("Unknown format: @\{format_name}")
+      }
 
     // As pattern: bind variable and continue with body
     @ast.Expr::As(expr, var_name, body) => {
@@ -1947,4 +2101,119 @@ fn delete_at_path(root : Json, path : Array[Json]) -> Json {
       _ => root
     }
   }
+}
+
+///|
+/// URI encode a string
+fn uri_encode(s : String) -> String {
+  let buf = @buffer.new()
+  for char in s {
+    match char {
+      'A'..='Z' | 'a'..='z' | '0'..='9' | '-' | '_' | '.' | '~' =>
+        buf.write_char(char)
+      ' ' => buf.write_char('+')
+      _ => {
+        // Percent encode
+        let code = char.to_int()
+        buf.write_string("%")
+        buf.write_string(code.to_string()) // Simplified
+      }
+    }
+  }
+  buf.to_string()
+}
+
+///|
+/// HTML escape a string
+fn html_escape(s : String) -> String {
+  let buf = @buffer.new()
+  for char in s {
+    match char {
+      '<' => buf.write_string("&lt;")
+      '>' => buf.write_string("&gt;")
+      '&' => buf.write_string("&amp;")
+      '"' => buf.write_string("&quot;")
+      '\'' => buf.write_string("&#39;")
+      _ => buf.write_char(char)
+    }
+  }
+  buf.to_string()
+}
+
+///|
+/// Simple base64 encoding
+fn base64_encode(bytes : Bytes) -> String {
+  let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+  let buf = @buffer.new()
+  let len = bytes.length()
+  let mut i = 0
+  while i < len {
+    let b1 = bytes[i].to_int()
+    let b2 = if i + 1 < len { bytes[i + 1].to_int() } else { 0 }
+    let b3 = if i + 2 < len { bytes[i + 2].to_int() } else { 0 }
+    let c1 = b1.lsr(2)
+    let c2 = b1.land(0x03).lsl(4) | b2.lsr(4)
+    let c3 = b2.land(0x0f).lsl(2) | b3.lsr(6)
+    let c4 = b3 & 0x3f
+    buf.write_char(chars.get_char(c1).unwrap())
+    buf.write_char(chars.get_char(c2).unwrap())
+    if i + 1 < len {
+      buf.write_char(chars.get_char(c3).unwrap())
+    } else {
+      buf.write_char('=')
+    }
+    if i + 2 < len {
+      buf.write_char(chars.get_char(c4).unwrap())
+    } else {
+      buf.write_char('=')
+    }
+    i = i + 3
+  }
+  buf.to_string()
+}
+
+///|
+/// Simple base64 decoding
+fn base64_decode(s : String) -> Bytes raise InterpreterError {
+  let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+  let buf : Array[Byte] = []
+  let mut i = 0
+  let len = s.length()
+  while i < len {
+    let c1_opt = s.get_char(i)
+    let c2_opt = s.get_char(i + 1)
+    let c3_opt = s.get_char(i + 2)
+    let c4_opt = s.get_char(i + 3)
+    match (c1_opt, c2_opt, c3_opt, c4_opt) {
+      (Some(c1), Some(c2), Some(c3), Some(c4)) => {
+        let v1 = find_char_index(chars, c1)
+        let v2 = find_char_index(chars, c2)
+        let v3 = if c3 == '=' { 0 } else { find_char_index(chars, c3) }
+        let v4 = if c4 == '=' { 0 } else { find_char_index(chars, c4) }
+        buf.push(v1.lsl(2).lor(v2.lsr(4)).to_byte())
+        if c3 != '=' {
+          buf.push(v2.lsl(4).lor(v3.lsr(2)).land(0xff).to_byte())
+        }
+        if c4 != '=' {
+          buf.push(v3.lsl(6).lor(v4).land(0xff).to_byte())
+        }
+        i = i + 4
+      }
+      _ => break
+    }
+  }
+  Bytes::from_array(buf)
+}
+
+///|
+/// Find character index in string
+fn find_char_index(s : String, ch : Char) -> Int {
+  let mut idx = 0
+  for c in s {
+    if c == ch {
+      return idx
+    }
+    idx = idx + 1
+  }
+  0
 }

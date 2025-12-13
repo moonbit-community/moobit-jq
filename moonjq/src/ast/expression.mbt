@@ -79,6 +79,13 @@ pub(all) enum Expr {
   Update(Expr, Expr) // |=
   Assign(Expr, Expr) // =
   Alternative(Expr, Expr) // //
+  AddAssign(Expr, Expr) // +=
+  SubAssign(Expr, Expr) // -=
+  MulAssign(Expr, Expr) // *=
+  DivAssign(Expr, Expr) // /=
+  ModAssign(Expr, Expr) // %=
+  AltAssign(Expr, Expr) // //=
+  Format(String) // @base64, @uri, @csv, @json, @html, @text
   // Additional string functions
   LTrimStr(String) // ltrimstr(str)
   RTrimStr(String) // rtrimstr(str)
