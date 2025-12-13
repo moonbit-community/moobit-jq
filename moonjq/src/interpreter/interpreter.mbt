@@ -2216,14 +2216,14 @@ fn eval_with_env(
       }
       let mut accumulator = init_results[0]
       for gen_result in gen_results {
-        let new_env = Env::new()
+        let mut new_env = Env::new()
         for key, value in env.bindings {
-          ignore(new_env.set(key, value))
+          new_env = new_env.set(key, value)
         }
         for key, value in env.functions {
-          ignore(new_env.set_function(key, value.0, value.1))
+          new_env = new_env.set_function(key, value.0, value.1)
         }
-        ignore(new_env.set(var_name, gen_result))
+        new_env = new_env.set(var_name, gen_result)
         let update_results = eval_with_env(update_expr, accumulator, new_env).collect()
         if not(update_results.is_empty()) {
           accumulator = update_results[0]
@@ -2240,14 +2240,14 @@ fn eval_with_env(
       let mut accumulator = init_results[0]
       let results : Array[Json] = []
       for gen_result in gen_results {
-        let new_env = Env::new()
+        let mut new_env = Env::new()
         for key, value in env.bindings {
-          ignore(new_env.set(key, value))
+          new_env = new_env.set(key, value)
         }
         for key, value in env.functions {
-          ignore(new_env.set_function(key, value.0, value.1))
+          new_env = new_env.set_function(key, value.0, value.1)
         }
-        ignore(new_env.set(var_name, gen_result))
+        new_env = new_env.set(var_name, gen_result)
         let update_results = eval_with_env(update_expr, accumulator, new_env).collect()
         if not(update_results.is_empty()) {
           accumulator = update_results[0]

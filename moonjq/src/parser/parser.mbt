@@ -117,7 +117,7 @@ fn Parser::parse_pipe(self : Parser) -> @ast.Expr raise ParseError {
   let mut expr = self.parse_comma()
 
   // Check for 'as $var' binding
-  if self.match_identifier("as") {
+  if self.consume(@lexer.Token::TAs) {
     let var_name = match self.current() {
       Some(@lexer.Token::TVariable(name)) => {
         self.advance()
@@ -612,7 +612,7 @@ fn Parser::parse_reduce(self : Parser) -> @ast.Expr raise ParseError {
   self.advance() // consume 'reduce'
   let gen_expr = self.parse_postfix() // generator expression
   // Expect 'as'
-  if not(self.match_identifier("as")) {
+  if not(self.consume(@lexer.Token::TAs)) {
     raise ParseError::InvalidSyntax("reduce expects 'as' after expression")
   }
   // Expect variable
@@ -638,7 +638,7 @@ fn Parser::parse_foreach(self : Parser) -> @ast.Expr raise ParseError {
   self.advance() // consume 'foreach'
   let gen_expr = self.parse_postfix() // generator expression
   // Expect 'as'
-  if not(self.match_identifier("as")) {
+  if not(self.consume(@lexer.Token::TAs)) {
     raise ParseError::InvalidSyntax("foreach expects 'as' after expression")
   }
   // Expect variable
