@@ -1,118 +1,138 @@
-# MoonBit System Prompt
+# MoonJQ - A jq Implementation in MoonBit
 
-[`Agents.mbt.md`](./Agents.mbt.md) contains the MoonBit System Prompt, a
-descriptive system prompt designed to enhance the performance of code agents
-over MoonBit projects.
+A complete implementation of the jq JSON query language in MoonBit, featuring a lexer, parser, and interpreter with streaming semantics.
 
-## How to use
+## Features
 
-The simplest way is to reference the file and ask the AI to read it in the prompt.
+- ✅ **Complete jq core syntax**: Identity, field access, array operations, pipes, comma operator
+- ✅ **Arithmetic operations**: `+`, `-`, `*`, `/`, `%` with type coercion (numbers, strings, arrays, objects)
+- ✅ **Comparison operators**: `==`, `!=`, `<`, `<=`, `>`, `>=`
+- ✅ **Logical operators**: `and`, `or`, `not`
+- ✅ **Array/Object construction**: `[expr]`, `{key: expr}`
+- ✅ **Control flow**: `if-then-else`, `try-catch`
+- ✅ **Optional operator**: `?` to suppress errors
+- ✅ **Alternative operator**: `//` for null coalescing
+- ✅ **Recursive descent**: `..` to traverse nested structures
+- ✅ **Built-in functions**: 
+  - Array: `map`, `select`, `sort`, `reverse`, `flatten`, `unique`, `add`, `min`, `max`
+  - Object: `keys`, `values`
+  - General: `length`, `type`, `empty`, `not`
+  - Numeric: `floor`, `sqrt`
+- ✅ **Streaming semantics**: Multiple results via `Iterator[Json]`
 
-Here we provide some extra instructions on how to use the MoonBit System Prompt in
-different code agents.
+## Project Structure
 
-### AGENTS.md
-
-Many AI code agents now have adopted the [`AGENTS.md`](https://agents.md)
-convention for providing guidance for agents. For such agents, you may:
-
-- Copy `Agents.mbt.md` into your project directory as `AGENTS.md`
-- Append the content of `Agents.mbt.md` to your existing `AGENTS.md` file.
-
-### Claude Code
-
-[Claude Code](https://www.anthropic.com/claude-code) supports `CLAUDE.md` file.
-Since `CLAUDE.md` supports `@path/to/import` syntax, we suggest copying
-`Agents.mbt.md` into your project directory and mention it in `CLAUDE.md`. For
-example, suppose you copied `Agents.mbt.md` to your project directory as
-`moonbit.mbt.md`, then you can add the following line to your `CLAUDE.md` file:
-
-```markdown
-# MoonBit Language Reference
-- @moonbit.mbt.md
+```
+.
+├── moon.mod.json
+└── src/
+    ├── ast/              # AST type definitions
+    │   ├── expression.mbt
+    │   ├── literal.mbt
+    │   └── operator.mbt
+    ├── json/             # JSON helper functions (stdlib wrapper)
+    │   ├── value.mbt
+    │   └── value_test.mbt
+    ├── lexer/            # Tokenization
+    │   ├── lexer.mbt
+    │   ├── lexer_test.mbt
+    │   └── token.mbt
+    ├── parser/           # Parsing (recursive descent)
+    │   ├── parser.mbt
+    │   └── parser_test.mbt
+    ├── interpreter/      # Evaluation with streaming
+    │   ├── interpreter.mbt
+    │   └── interpreter_test.mbt
+    └── integration/      # End-to-end tests
+        └── integration_test.mbt
 ```
 
-See [Memory Management](https://docs.claude.com/en/docs/claude-code/memory)
-on detailed configuration.
+## Testing
 
-### Codex CLI
+**136 tests passing** covering:
+- 7 JSON tests
+- 31 Lexer tests
+- 52 Parser tests  
+- 25 Interpreter tests
+- 21 Integration tests
 
-Codex CLI supports [`AGENTS.md`](https://agents.md).
-Quoted from [openai/codex/docs/getting-started.md](https://github.com/openai/codex/blob/main/docs/getting-started.md#memory-with-agentsmd):
+```bash
+# Run all tests
+moon test
 
-> You can give Codex extra instructions and guidance using `AGENTS.md` files.
-> Codex looks for `AGENTS.md` files in the following places, and merges them
-> top-down:
->
-> 1. `~/.codex/AGENTS.md` - personal global guidance
-> 2. `AGENTS.md` at repo root - shared project notes
-> 3. `AGENTS.md` in the current working directory - sub-folder/feature specifics
->
-> For more information on how to use AGENTS.md, see the [official AGENTS.md
-> documentation](https://agents.md/).
+# Run specific package tests
+moon test src/lexer
+moon test src/parser
+moon test src/interpreter
+moon test src/integration
 
-### Cursor & Cursor CLI
-
-[Cursor](https://cursor.com/) supports `AGENTS.md` files. See the
-[`AGENTS.md`](#agentsmd) section above for details.
-
-Also, one can use [rules](https://docs.cursor.com/en/context/rules) to include the
-content of `Agents.mbt.md` file. For project rule, you can copy `Agents.mbt.md`
-to `.cursor/rules/moonbit.mdc`, and configure ways to include the
-context in the front-matter of `.cursor/rules/moonbit.mdc`. For example:
-
-```markdown
----
-description: "MoonBit System Prompt"
-globs:
-alwaysApply: true
----
-...
+# Update test snapshots
+moon test --update
 ```
 
-See <https://docs.cursor.com/en/context/rules> for more details.
+## Usage Example
 
-[Cursor CLI supports the same rules system as the IDE](https://docs.cursor.com/en/cli/using#rules)
-
-### Gemini CLI
-
-[Gemini-CLI](https://github.com/google-gemini/gemini-cli) reads from `GEMINI.md`
-files for user-level/repository-specific instructions/contexts. Since
-it supports `@` memory import, we suggest copying `Agents.mbt.md` into your
-project directory and mention it in `GEMINI.md`. For example, suppose you
-copied `Agents.mbt.md` to your project directory as `moonbit.mbt.md`, then you
-can add the following line to your `GEMINI.md` file:
-
-```markdown
-# MoonBit Language Reference
-- @moonbit.mbt.md
+```moonbit
+let expr = @parser.parse(".users | .[] | select(.age > 18) | .name")
+let json = @json.parse("{\"users\": [{\"name\": \"Alice\", \"age\": 25}]}")
+let results = @interpreter.eval(expr, json).collect()
+// results: [String("Alice")]
 ```
 
-See [Memory Import Processor](https://github.com/google-gemini/gemini-cli/blob/1634d5fcca29e7c64d37f99e17e42d303e12062d/docs/core/memport.md) for more information.
+## Architecture Highlights
 
-Also, Gemini-CLI can be configured to use `AGENTS.md` files, as per
-<https://agents.md>:
+### Lexer (`src/lexer/`)
+- **Token-based**: Converts jq query strings into token streams
+- **60+ token types**: Numbers, strings, keywords, operators, punctuation
+- **Error handling**: Precise error reporting with position tracking
+- **Features**: String escapes, comments, multi-char operators (`..`, `==`, `!=`, etc.)
 
-> **How do I configure Gemini CLI?**
->
-> Configure Gemini CLI to use AGENTS.md in .gemini/settings.json:
->
-> ```json
-> { "contextFileName": "AGENTS.md" }
-> ```
+### Parser (`src/parser/`)
+- **Recursive descent**: Precedence-climbing for expressions
+- **Operator precedence**: Pipe → Comma → Assignment → Or → And → Comparison → Additive → Multiplicative → Unary → Postfix → Primary
+- **AST generation**: Produces strongly-typed AST nodes
+- **Error recovery**: Detailed error messages with context
 
-### GitHub Copilot for VS Code
+### Interpreter (`src/interpreter/`)
+- **Streaming semantics**: Returns `Iterator[Json]` for multiple results
+- **Environment-based**: Variable bindings via immutable environment
+- **Type coercion**: Arithmetic operations work across JSON types (e.g., string + string, array + array)
+- **Lazy evaluation**: Efficient iteration without materializing intermediate results
 
-VS Code Copilot [experimentally supports `AGENTS.md`](https://code.visualstudio.com/docs/copilot/customization/custom-instructions#_use-an-agentsmd-file-experimental).
+## Implementation Notes
 
-When working with multi-language projects, you may want to limit the scope
-of the system prompt to specifically MoonBit-related files. You can do this by
-creating a `.github/instructions/moonbit.instructions.md` file with the
-following content:
+- **Standard library JSON**: Uses `Json` from `moonbitlang/core/json` (not custom types)
+- **Pattern matching**: Comprehensive pattern matching on `Json` variants with `..` for `repr` field
+- **Error propagation**: Checked errors via `raise` annotations
+- **Functional style**: Immutable data structures, no side effects
+- **Iterator-based**: `Iterator[T]` for jq's streaming semantics
 
-```markdown
----
-applyTo: "**/*.mbt,**/*.mbti,**/moon.mod.json,**/moon.pkg.json,**/*.mbt.md"
----
-[Content of Agents.mbt.md]
+## Building
+
+```bash
+# Build the project
+moon build
+
+# Check types
+moon check
+
+# Format code
+moon fmt
+
+# Generate documentation
+moon info
 ```
+
+## Completeness
+
+This implementation covers the core jq functionality:
+- ✅ All basic jq operators and expressions
+- ✅ Array and object manipulation
+- ✅ Control flow constructs
+- ✅ Essential built-in functions
+- ✅ Streaming/multiple results
+- ❌ Not yet implemented: `reduce`, `as` patterns, string interpolation, advanced recursion, format strings, more built-ins
+
+## License
+
+See LICENSE file.

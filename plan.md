@@ -13,45 +13,18 @@ The goal is to create a pure functional implementation, leaving out I/O operatio
 ## Architecture
 
 ```
-moonjq/
+.
 ├── moon.mod.json              # Module descriptor
-├── moon.pkg.json              # Root package (main library)
-├── README.mbt.md              # Documentation with tested examples
-│
-├── json/                      # JSON representation
-│   ├── moon.pkg.json
-│   ├── value.mbt              # Json enum type
-│   └── value_test.mbt
-│
-├── ast/                       # Abstract Syntax Tree
-│   ├── moon.pkg.json
-│   ├── expression.mbt         # Expression types
-│   ├── literal.mbt            # Literal values
-│   ├── operator.mbt           # Binary/unary operators
-│   └── builtin.mbt            # Built-in functions
-│
-├── lexer/                     # Tokenizer
-│   ├── moon.pkg.json
-│   ├── token.mbt              # Token types
-│   ├── lexer.mbt              # Lexer implementation
-│   └── lexer_test.mbt
-│
-├── parser/                    # Parser
-│   ├── moon.pkg.json
-│   ├── parser.mbt             # Recursive descent parser
-│   └── parser_test.mbt
-│
-├── interpreter/               # Interpreter/Evaluator
-│   ├── moon.pkg.json
-│   ├── eval.mbt               # Main evaluation logic
-│   ├── operators.mbt          # Operator implementations
-│   ├── builtins.mbt           # Built-in function implementations
-│   ├── context.mbt            # Evaluation context/environment
-│   └── interpreter_test.mbt
-│
-└── cmd/main/                  # CLI entry point (optional)
-    ├── moon.pkg.json
-    └── main.mbt
+├── README.md                  # Project README
+├── FEATURES.md                # Feature checklist
+├── PROGRESS.md                # Project notes
+└── src/                       # MoonBit source (module "source" dir)
+    ├── ast/                   # AST type definitions
+    ├── json/                  # JSON helpers
+    ├── lexer/                 # Tokenizer
+    ├── parser/                # Parser
+    ├── interpreter/           # Interpreter/Evaluator
+    └── integration/           # End-to-end tests
 ```
 
 ---
