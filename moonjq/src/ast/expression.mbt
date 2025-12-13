@@ -1,0 +1,57 @@
+///|
+/// jq expression AST
+pub(all) enum Expr {
+  // Core
+  Identity // .
+  Literal(Literal) // null, true, 123, "str"
+  Pipe(Expr, Expr) // expr | expr
+  Comma(Expr, Expr) // expr, expr
+  // Access
+  Key(String) // .foo
+  Index(Array[Int]) // .[0], .[1,2,3], .[] (empty = iterator)
+  Slice(Int?, Int?) // .[2:4], .[2:], .[:4]
+  Optional(Expr) // expr?
+  // Constructors
+  ArrayConstruct(Expr?) // [expr] or []
+  ObjectConstruct(Array[(Expr, Expr?)]) // {key: value, ...}
+  // Operations
+  Operation(Expr, BinaryOp, Expr) // expr op expr
+  // Built-ins (Phase 2b)
+  Length // length
+  Keys // keys
+  Values // values
+  Type // type
+  Empty // empty
+  Not // not
+  // Array/Object functions
+  Map(Expr) // map(expr)
+  Select(Expr) // select(expr)
+  Sort // sort
+  SortBy(Expr) // sort_by(expr)
+  Reverse // reverse
+  Flatten(Int?) // flatten, flatten(n)
+  Unique // unique
+  GroupBy(Expr) // group_by(expr)
+  // Numeric
+  Add // add (sum array)
+  Floor // floor
+  Sqrt // sqrt
+  Min // min
+  Max // max
+  // Control flow (Phase 2c)
+  IfThenElse(Expr, Expr, Expr) // if cond then a else b end
+  TryCatch(Expr, Expr?) // try expr catch handler
+  // Variables and Reduce
+  Variable(String) // $var
+  As(Expr, String, Expr) // expr as $var | expr
+  Reduce(Expr, String, Expr, Expr) // reduce expr as $var (init; update)
+  // Advanced
+  Recurse // recurse, ..
+  RecurseWith(Expr, Expr) // recurse(f; cond)
+  Walk(Expr) // walk(expr)
+  Path(Expr) // path(expr)
+  // Assignment
+  Update(Expr, Expr) // |=
+  Assign(Expr, Expr) // =
+  Alternative(Expr, Expr) // //
+} derive(Show, Eq, ToJson)

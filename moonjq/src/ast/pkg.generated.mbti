@@ -1,0 +1,89 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/moonjq/ast"
+
+// Values
+
+// Errors
+
+// Types and methods
+pub(all) enum BinaryOp {
+  Add
+  Subtract
+  Multiply
+  Divide
+  Modulo
+  Equal
+  NotEqual
+  LessThan
+  LessEq
+  GreaterThan
+  GreaterEq
+  And
+  Or
+}
+pub impl Eq for BinaryOp
+pub impl Show for BinaryOp
+pub impl ToJson for BinaryOp
+
+pub(all) enum Expr {
+  Identity
+  Literal(Literal)
+  Pipe(Expr, Expr)
+  Comma(Expr, Expr)
+  Key(String)
+  Index(Array[Int])
+  Slice(Int?, Int?)
+  Optional(Expr)
+  ArrayConstruct(Expr?)
+  ObjectConstruct(Array[(Expr, Expr?)])
+  Operation(Expr, BinaryOp, Expr)
+  Length
+  Keys
+  Values
+  Type
+  Empty
+  Not
+  Map(Expr)
+  Select(Expr)
+  Sort
+  SortBy(Expr)
+  Reverse
+  Flatten(Int?)
+  Unique
+  GroupBy(Expr)
+  Add
+  Floor
+  Sqrt
+  Min
+  Max
+  IfThenElse(Expr, Expr, Expr)
+  TryCatch(Expr, Expr?)
+  Variable(String)
+  As(Expr, String, Expr)
+  Reduce(Expr, String, Expr, Expr)
+  Recurse
+  RecurseWith(Expr, Expr)
+  Walk(Expr)
+  Path(Expr)
+  Update(Expr, Expr)
+  Assign(Expr, Expr)
+  Alternative(Expr, Expr)
+}
+pub impl Eq for Expr
+pub impl Show for Expr
+pub impl ToJson for Expr
+
+pub(all) enum Literal {
+  Null
+  Bool(Bool)
+  Number(Double)
+  String(String)
+}
+pub impl Eq for Literal
+pub impl Show for Literal
+pub impl ToJson for Literal
+
+// Type aliases
+
+// Traits
+

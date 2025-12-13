@@ -1,0 +1,6 @@
+{
+  "import": [
+    "moonbitlang/moonjq/ast",
+    "moonbitlang/moonjq/lexer"
+  ]
+}

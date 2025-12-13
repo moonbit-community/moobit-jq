@@ -1,0 +1,8 @@
+{
+  "name": "moonbitlang/moonjq",
+  "version": "0.1.0",
+  "source": "src",
+  "repository": "",
+  "keywords": ["jq", "json", "query"],
+  "description": "A jq implementation in MoonBit"
+}

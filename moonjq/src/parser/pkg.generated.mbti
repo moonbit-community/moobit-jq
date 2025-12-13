@@ -1,0 +1,25 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/moonjq/parser"
+
+import(
+  "moonbitlang/moonjq/ast"
+)
+
+// Values
+pub fn parse(String) -> @ast.Expr raise
+
+// Errors
+pub(all) suberror ParseError {
+  UnexpectedToken(String, String)
+  UnexpectedEnd(String)
+  InvalidSyntax(String)
+}
+pub impl Eq for ParseError
+pub impl Show for ParseError
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

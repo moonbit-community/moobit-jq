@@ -1,0 +1,7 @@
+{
+  "import": [
+    "moonbitlang/moonjq/ast",
+    "moonbitlang/moonjq/json",
+    "moonbitlang/moonjq/parser"
+  ]
+}
