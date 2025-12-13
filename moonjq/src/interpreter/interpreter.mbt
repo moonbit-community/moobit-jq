@@ -11,14 +11,15 @@ pub(all) suberror InterpreterError {
 } derive(Eq, Show)
 
 ///|
-/// Environment for variable bindings
+/// Environment for variable and function bindings
 struct Env {
   bindings : Map[String, Json]
+  functions : Map[String, (@ast.Expr, Array[String])] // (body, params)
 }
 
 ///|
 fn Env::new() -> Env {
-  { bindings: {} }
+  { bindings: {}, functions: {} }
 }
 
 ///|
@@ -30,7 +31,24 @@ fn Env::get(self : Env, name : String) -> Json? {
 fn Env::set(self : Env, name : String, value : Json) -> Env {
   let new_bindings = self.bindings
   new_bindings[name] = value
-  { bindings: new_bindings }
+  { bindings: new_bindings, functions: self.functions }
+}
+
+///|
+fn Env::set_function(
+  self : Env,
+  name : String,
+  body : @ast.Expr,
+  params : Array[String],
+) -> Env {
+  let new_funcs = self.functions
+  new_funcs[name] = (body, params)
+  { bindings: self.bindings, functions: new_funcs }
+}
+
+///|
+fn Env::get_function(self : Env, name : String) -> (@ast.Expr, Array[String])? {
+  self.functions.get(name)
 }
 
 ///|
@@ -55,6 +73,14 @@ fn eval_with_env(
 
     // Pipe: feed results of left into right
     @ast.Expr::Pipe(left, right) => {
+      // Special case: if left is a function definition, update env
+      match left {
+        @ast.Expr::FunctionDef(name, params, body) => {
+          let new_env = env.set_function(name, body, params)
+          return eval_with_env(right, input, new_env)
+        }
+        _ => ()
+      }
       let left_results = eval_with_env(left, input, env).collect()
       let mut all_results : Array[Json] = []
       for val in left_results {
@@ -674,6 +700,69 @@ fn eval_with_env(
           }
         _ =>
           raise InterpreterError::EvalError("Unknown format: @\{format_name}")
+      }
+
+    // String interpolation: "text \(expr) more"
+    @ast.Expr::StringInterpolation(parts) => {
+      let buf = @buffer.new()
+      for pair in parts {
+        let (text, expr_opt) = pair
+        buf.write_string(text)
+        match expr_opt {
+          Some(expr) => {
+            let results = eval_with_env(expr, input, env).collect()
+            if not(results.is_empty()) {
+              match results[0] {
+                String(s) => buf.write_string(s)
+                _ => buf.write_string(results[0].to_string())
+              }
+            }
+          }
+          None => ()
+        }
+      }
+      Iter::singleton(Json::string(buf.to_string()))
+    }
+
+    // Function definition: this is tricky because we need to update env
+    // We handle this specially in the Pipe case when left is FunctionDef
+    @ast.Expr::FunctionDef(_name, _params, _body) =>
+      // Should not be evaluated directly, only through Pipe
+      Iter::singleton(input)
+
+    // Function call: lookup and execute
+    @ast.Expr::FunctionCall(name, args) =>
+      match env.get_function(name) {
+        Some((body, params)) =>
+          if params.is_empty() {
+            // Zero-parameter function - just execute with current input
+            eval_with_env(body, input, env)
+          } else if args.length() != params.length() {
+            raise InterpreterError::EvalError(
+              "Function \{name} expects \{params.length()} arguments, got \{args.length()}",
+            )
+          } else {
+            // Evaluate arguments as expressions against current input
+            let arg_values : Array[Json] = []
+            for arg in args {
+              let results = eval_with_env(arg, input, env).collect()
+              arg_values.push(
+                if results.is_empty() {
+                  Json::null()
+                } else {
+                  results[0]
+                },
+              )
+            }
+            // Bind parameters as variables
+            let mut new_env = env
+            for i = 0; i < params.length(); i = i + 1 {
+              new_env = new_env.set(params[i], arg_values[i])
+            }
+            // Execute function body with original input
+            eval_with_env(body, input, new_env)
+          }
+        None => raise InterpreterError::EvalError("Undefined function: \{name}")
       }
 
     // As pattern: bind variable and continue with body

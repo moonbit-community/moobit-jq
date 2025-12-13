@@ -4,6 +4,7 @@ pub(all) enum Token {
   // Literals
   TNumber(Double)
   TString(String)
+  TStringInterpolation(Array[(String, String?)]) // parts with optional expressions
   TTrue
   TFalse
   TNull

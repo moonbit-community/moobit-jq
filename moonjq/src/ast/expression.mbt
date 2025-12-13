@@ -86,6 +86,10 @@ pub(all) enum Expr {
   ModAssign(Expr, Expr) // %=
   AltAssign(Expr, Expr) // //=
   Format(String) // @base64, @uri, @csv, @json, @html, @text
+  StringInterpolation(Array[(String, Expr?)]) // "text \(expr) more"
+  // User-defined functions
+  FunctionDef(String, Array[String], Expr) // def name(params): body
+  FunctionCall(String, Array[Expr]) // name(args)
   // Additional string functions
   LTrimStr(String) // ltrimstr(str)
   RTrimStr(String) // rtrimstr(str)

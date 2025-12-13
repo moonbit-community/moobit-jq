@@ -4,6 +4,7 @@ pub(all) suberror ParseError {
   UnexpectedToken(String, String) // (found, expected) - using String to avoid ToJson requirement
   UnexpectedEnd(String) // (expected)
   InvalidSyntax(String)
+  InvalidExpression(String)
 } derive(Eq, Show)
 
 ///|
@@ -76,7 +77,26 @@ fn Parser::expect(
 pub fn parse(input : String) -> @ast.Expr raise {
   let tokens = @lexer.lex(input)
   let parser = Parser::new(tokens)
-  parser.parse_pipe()
+  parser.parse_definitions()
+}
+
+///|
+/// Parse function definitions followed by expression
+fn Parser::parse_definitions(self : Parser) -> @ast.Expr raise ParseError {
+  let defs : Array[@ast.Expr] = []
+  while self.current() == Some(@lexer.Token::TDef) {
+    defs.push(self.parse_function_def())
+  }
+  let main_expr = self.parse_pipe()
+  // Chain definitions with main expression so they execute in order
+  if defs.is_empty() {
+    main_expr
+  } else {
+    // Fold defs from right to left so they execute in order
+    defs
+    .rev()
+    .fold(init=main_expr, fn(expr, def) { @ast.Expr::Pipe(def, expr) })
+  }
 }
 
 ///|
@@ -407,6 +427,28 @@ fn Parser::parse_primary(self : Parser) -> @ast.Expr raise ParseError {
     Some(@lexer.Token::TString(s)) => {
       self.advance()
       @ast.Expr::Literal(@ast.Literal::String(s))
+    }
+    Some(@lexer.Token::TStringInterpolation(parts)) => {
+      self.advance()
+      let parsed_parts : Array[(String, @ast.Expr?)] = []
+      for pair in parts {
+        let (text, expr_opt) = pair
+        match expr_opt {
+          Some(expr_str) => {
+            let expr_tokens = @lexer.lex(expr_str) catch {
+              _ =>
+                raise ParseError::InvalidExpression(
+                  "Failed to parse interpolation",
+                )
+            }
+            let expr_parser = Parser::new(expr_tokens)
+            let expr = expr_parser.parse_pipe()
+            parsed_parts.push((text, Some(expr)))
+          }
+          None => parsed_parts.push((text, None))
+        }
+      }
+      @ast.Expr::StringInterpolation(parsed_parts)
     }
     Some(@lexer.Token::TDotDot) => {
       self.advance()
@@ -919,6 +961,62 @@ fn Parser::parse_builtin(
         _ => raise ParseError::InvalidSyntax("gsub expects string pattern")
       }
     }
-    _ => raise ParseError::InvalidSyntax("Unknown function: \{name}")
+    _ =>
+      // Check if it's a function call with parentheses
+      if self.current() == Some(@lexer.Token::TLParen) {
+        self.advance()
+        let args : Array[@ast.Expr] = []
+        if not(self.current() == Some(@lexer.Token::TRParen)) {
+          args.push(self.parse_pipe())
+          while self.consume(@lexer.Token::TSemicolon) {
+            args.push(self.parse_pipe())
+          }
+        }
+        self.expect(@lexer.Token::TRParen)
+        @ast.Expr::FunctionCall(name, args)
+      } else {
+        // Zero-argument function call
+        @ast.Expr::FunctionCall(name, [])
+      }
   }
+}
+
+///|
+/// Parse function definition: def name(params): body;
+fn Parser::parse_function_def(self : Parser) -> @ast.Expr raise ParseError {
+  self.expect(@lexer.Token::TDef)
+  let name = match self.current() {
+    Some(@lexer.Token::TIdentifier(n)) => {
+      self.advance()
+      n
+    }
+    _ => raise ParseError::UnexpectedToken("identifier", "function name")
+  }
+  let params : Array[String] = []
+  // Optional parameters
+  if self.consume(@lexer.Token::TLParen) {
+    if not(self.current() == Some(@lexer.Token::TRParen)) {
+      match self.current() {
+        Some(@lexer.Token::TIdentifier(p)) => {
+          self.advance()
+          params.push(p)
+        }
+        _ => raise ParseError::UnexpectedToken("identifier", "parameter")
+      }
+      while self.consume(@lexer.Token::TSemicolon) {
+        match self.current() {
+          Some(@lexer.Token::TIdentifier(p)) => {
+            self.advance()
+            params.push(p)
+          }
+          _ => raise ParseError::UnexpectedToken("identifier", "parameter")
+        }
+      }
+    }
+    self.expect(@lexer.Token::TRParen)
+  }
+  self.expect(@lexer.Token::TColon)
+  let body = self.parse_pipe()
+  self.expect(@lexer.Token::TSemicolon)
+  @ast.Expr::FunctionDef(name, params, body)
 }

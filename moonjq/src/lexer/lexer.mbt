@@ -121,10 +121,11 @@ fn Lexer::lex_number(self : Lexer) -> Unit raise LexError {
 }
 
 ///|
-/// Lex a string
+/// Lex a string (with interpolation support)
 fn Lexer::lex_string(self : Lexer) -> Unit raise LexError {
   let start = self.pos
   self.advance()
+  let parts : Array[(String, String?)] = []
   let buf = @buffer.new()
   while true {
     match self.current() {
@@ -137,6 +138,53 @@ fn Lexer::lex_string(self : Lexer) -> Unit raise LexError {
         self.advance()
         match self.current() {
           None => raise LexError::UnterminatedString(start)
+          Some('(') => {
+            // String interpolation: \(expr)
+            self.advance()
+            parts.push((buf.to_string(), None))
+            buf.reset()
+            // Find the matching closing paren
+            let expr_start = self.pos
+            let mut paren_depth = 1
+            while paren_depth > 0 {
+              match self.current() {
+                None => raise LexError::UnterminatedString(start)
+                Some('(') => {
+                  paren_depth = paren_depth + 1
+                  self.advance()
+                }
+                Some(')') => {
+                  paren_depth = paren_depth - 1
+                  if paren_depth == 0 {
+                    let expr_text = try! self.input[expr_start:self.pos].to_string()
+                    parts.push(("", Some(expr_text)))
+                    self.advance()
+                  } else {
+                    self.advance()
+                  }
+                }
+                Some('"') => {
+                  // Skip nested strings
+                  self.advance()
+                  while true {
+                    match self.current() {
+                      Some('"') => {
+                        self.advance()
+                        break
+                      }
+                      Some('\\') => {
+                        self.advance()
+                        self.advance()
+                      }
+                      None => raise LexError::UnterminatedString(start)
+                      _ => self.advance()
+                    }
+                  }
+                }
+                _ => self.advance()
+              }
+            }
+          }
           Some('n') => {
             buf.write_char('\n')
             self.advance()
@@ -174,7 +222,13 @@ fn Lexer::lex_string(self : Lexer) -> Unit raise LexError {
       }
     }
   }
-  self.add_token(TString(buf.to_string()))
+  // Check if we have interpolation
+  if parts.is_empty() {
+    self.add_token(TString(buf.to_string()))
+  } else {
+    parts.push((buf.to_string(), None))
+    self.add_token(TStringInterpolation(parts))
+  }
 }
 
 ///|

@@ -164,12 +164,7 @@ test "missing: walk function" {
 
 ///|
 test "missing: pow function" {
-  inspect(
-    test_feature("pow(2; 3)", "null"),
-    content=(
-      "Number(8)"
-    ),
-  )
+  inspect(test_feature("pow(2; 3)", "null"), content="Number(8)")
 }
 
 ///|
@@ -236,7 +231,9 @@ test "missing: //= operator" {
 test "missing: string interpolation" {
   inspect(
     test_feature("\"Hello \\(.name)\"", "{\"name\":\"World\"}"),
-    content="ParseError: InvalidEscape(8, '(')",
+    content=(
+      #|String("Hello World")
+    ),
   )
 }
 
@@ -384,12 +381,7 @@ test "missing: asin, acos, atan" {
 
 ///|
 test "missing: user-defined functions" {
-  inspect(
-    test_feature("def double: . * 2; double", "5"),
-    content=(
-      #|ParseError: UnexpectedToken("TDef", "expression")
-    ),
-  )
+  inspect(test_feature("def double: . * 2; double", "5"), content="Number(10)")
 }
 
 ///|
@@ -397,7 +389,7 @@ test "missing: user-defined functions with params" {
   inspect(
     test_feature("def add(x): . + x; add(10)", "5"),
     content=(
-      #|ParseError: UnexpectedToken("TDef", "expression")
+      #|EvalError: TypeMismatch("array", "number")
     ),
   )
 }
@@ -409,9 +401,7 @@ test "missing: recursive user-defined functions" {
       "def factorial: if . <= 1 then 1 else . * ((. - 1) | factorial) end; factorial",
       "5",
     ),
-    content=(
-      #|ParseError: UnexpectedToken("TDef", "expression")
-    ),
+    content="Number(120)",
   )
 }
 
