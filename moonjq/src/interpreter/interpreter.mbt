@@ -1118,6 +1118,489 @@ fn eval_with_env(
           raise InterpreterError::TypeMismatch("array", @json.type_name(input))
       }
 
+    // String trimming
+    @ast.Expr::LTrimStr(prefix) =>
+      match input {
+        String(s) =>
+          if s.has_prefix(prefix) {
+            Iter::singleton(Json::string(s.substring(start=prefix.length())))
+          } else {
+            Iter::singleton(input)
+          }
+        _ =>
+          raise InterpreterError::TypeMismatch("string", @json.type_name(input))
+      }
+    @ast.Expr::RTrimStr(suffix) =>
+      match input {
+        String(s) =>
+          if s.has_suffix(suffix) {
+            Iter::singleton(
+              Json::string(s.substring(end=s.length() - suffix.length())),
+            )
+          } else {
+            Iter::singleton(input)
+          }
+        _ =>
+          raise InterpreterError::TypeMismatch("string", @json.type_name(input))
+      }
+    @ast.Expr::AsciiUpcase =>
+      match input {
+        String(s) => {
+          let result = @buffer.new()
+          for ch in s {
+            if ch >= 'a' && ch <= 'z' {
+              result.write_char(Char::from_int(ch.to_int() - 32))
+            } else {
+              result.write_char(ch)
+            }
+          }
+          Iter::singleton(Json::string(result.to_string()))
+        }
+        _ =>
+          raise InterpreterError::TypeMismatch("string", @json.type_name(input))
+      }
+    @ast.Expr::AsciiDowncase =>
+      match input {
+        String(s) => {
+          let result = @buffer.new()
+          for ch in s {
+            if ch >= 'A' && ch <= 'Z' {
+              result.write_char(Char::from_int(ch.to_int() + 32))
+            } else {
+              result.write_char(ch)
+            }
+          }
+          Iter::singleton(Json::string(result.to_string()))
+        }
+        _ =>
+          raise InterpreterError::TypeMismatch("string", @json.type_name(input))
+      }
+
+    // Array functions
+    @ast.Expr::Nth(n) =>
+      match input {
+        Array(arr) =>
+          if n >= 0 && n < arr.length() {
+            Iter::singleton(arr[n])
+          } else if n < 0 && -n <= arr.length() {
+            Iter::singleton(arr[arr.length() + n])
+          } else {
+            Iter::empty()
+          }
+        _ =>
+          raise InterpreterError::TypeMismatch("array", @json.type_name(input))
+      }
+    @ast.Expr::RIndex(search_expr) => {
+      let needle_results = eval_with_env(search_expr, input, env).collect()
+      if needle_results.is_empty() {
+        return Iter::singleton(Json::null())
+      }
+      let needle = needle_results[0]
+      match input {
+        Array(arr) => {
+          let mut last_index : Int? = None
+          for i = 0; i < arr.length(); i = i + 1 {
+            if arr[i] == needle {
+              last_index = Some(i)
+            }
+          }
+          match last_index {
+            Some(idx) => Iter::singleton(Json::number(idx.to_double()))
+            None => Iter::singleton(Json::null())
+          }
+        }
+        String(s) =>
+          match needle {
+            String(substr) => {
+              let mut last_pos : Int? = None
+              let slen = s.length()
+              let sublen = substr.length()
+              for i = 0; i <= slen - sublen; i = i + 1 {
+                if s.substring(start=i, end=i + sublen) == substr {
+                  last_pos = Some(i)
+                }
+              }
+              match last_pos {
+                Some(pos) => Iter::singleton(Json::number(pos.to_double()))
+                None => Iter::singleton(Json::null())
+              }
+            }
+            _ => Iter::singleton(Json::null())
+          }
+        _ =>
+          raise InterpreterError::TypeMismatch(
+            "array or string",
+            @json.type_name(input),
+          )
+      }
+    }
+
+    // Path functions
+    @ast.Expr::Paths => {
+      let paths_list : Array[Json] = []
+      fn collect_paths(value : Json, path : Array[Json]) {
+        match value {
+          Object(obj) =>
+            for key, val in obj {
+              let new_path = path + [Json::string(key)]
+              paths_list.push(Json::array(new_path))
+              collect_paths(val, new_path)
+            }
+          Array(arr) =>
+            for i = 0; i < arr.length(); i = i + 1 {
+              let new_path = path + [Json::number(i.to_double())]
+              paths_list.push(Json::array(new_path))
+              collect_paths(arr[i], new_path)
+            }
+          _ => ()
+        }
+      }
+
+      collect_paths(input, [])
+      Iter::new(fn(emit) {
+        for p in paths_list {
+          if emit(p) == IterEnd {
+            break
+          }
+        }
+        IterContinue
+      })
+    }
+    @ast.Expr::LeafPaths => {
+      let paths_list : Array[Json] = []
+      fn collect_leaf_paths(value : Json, path : Array[Json]) {
+        match value {
+          Object(obj) =>
+            if obj.is_empty() {
+              paths_list.push(Json::array(path))
+            } else {
+              for key, val in obj {
+                collect_leaf_paths(val, path + [Json::string(key)])
+              }
+            }
+          Array(arr) =>
+            if arr.is_empty() {
+              paths_list.push(Json::array(path))
+            } else {
+              for i = 0; i < arr.length(); i = i + 1 {
+                collect_leaf_paths(arr[i], path + [Json::number(i.to_double())])
+              }
+            }
+          _ => paths_list.push(Json::array(path))
+        }
+      }
+
+      collect_leaf_paths(input, [])
+      Iter::new(fn(emit) {
+        for p in paths_list {
+          if emit(p) == IterEnd {
+            break
+          }
+        }
+        IterContinue
+      })
+    }
+    @ast.Expr::GetPath(path_expr) => {
+      let path_results = eval_with_env(path_expr, input, env).collect()
+      if path_results.is_empty() {
+        return Iter::singleton(Json::null())
+      }
+      match path_results[0] {
+        Array(path_arr) => {
+          let mut current = input
+          for segment in path_arr {
+            match (current, segment) {
+              (Object(obj), String(key)) =>
+                match obj.get(key) {
+                  Some(v) => current = v
+                  None => return Iter::singleton(Json::null())
+                }
+              (Array(arr), Number(idx, ..)) => {
+                let i = idx.to_int()
+                if i >= 0 && i < arr.length() {
+                  current = arr[i]
+                } else {
+                  return Iter::singleton(Json::null())
+                }
+              }
+              _ => return Iter::singleton(Json::null())
+            }
+          }
+          Iter::singleton(current)
+        }
+        _ => Iter::singleton(Json::null())
+      }
+    }
+    @ast.Expr::SetPath(path_expr, value_expr) => {
+      let path_results = eval_with_env(path_expr, input, env).collect()
+      let value_results = eval_with_env(value_expr, input, env).collect()
+      if path_results.is_empty() || value_results.is_empty() {
+        return Iter::singleton(input)
+      }
+      match path_results[0] {
+        Array(path_arr) =>
+          if path_arr.is_empty() {
+            Iter::singleton(value_results[0])
+          } else {
+            Iter::singleton(set_at_path(input, path_arr, value_results[0]))
+          }
+        _ => Iter::singleton(input)
+      }
+    }
+    @ast.Expr::DelPaths(paths_expr) => {
+      let paths_results = eval_with_env(paths_expr, input, env).collect()
+      if paths_results.is_empty() {
+        return Iter::singleton(input)
+      }
+      match paths_results[0] {
+        Array(paths_arr) => {
+          let mut result = input
+          for path_json in paths_arr {
+            match path_json {
+              Array(path) => result = delete_at_path(result, path)
+              _ => ()
+            }
+          }
+          Iter::singleton(result)
+        }
+        _ => Iter::singleton(input)
+      }
+    }
+
+    // Control flow
+    @ast.Expr::Limit(n, expr) => {
+      let results = eval_with_env(expr, input, env)
+      let count = Ref::new(0)
+      Iter::new(fn(emit) {
+        for val in results {
+          if count.val >= n {
+            break
+          }
+          count.val = count.val + 1
+          if emit(val) == IterEnd {
+            break
+          }
+        }
+        IterContinue
+      })
+    }
+    @ast.Expr::Until(cond_expr, update_expr) => {
+      let mut current = input
+      while true {
+        let cond_results = eval_with_env(cond_expr, current, env).collect()
+        if cond_results.is_empty() {
+          break
+        }
+        match cond_results[0] {
+          True => break
+          _ => {
+            let update_results = eval_with_env(update_expr, current, env).collect()
+            if update_results.is_empty() {
+              break
+            }
+            current = update_results[0]
+          }
+        }
+      }
+      Iter::singleton(current)
+    }
+    @ast.Expr::While(cond_expr, update_expr) => {
+      let results : Array[Json] = []
+      let mut current = input
+      while true {
+        let cond_results = eval_with_env(cond_expr, current, env).collect()
+        if cond_results.is_empty() {
+          break
+        }
+        match cond_results[0] {
+          False | Null => break
+          _ => {
+            results.push(current)
+            let update_results = eval_with_env(update_expr, current, env).collect()
+            if update_results.is_empty() {
+              break
+            }
+            current = update_results[0]
+          }
+        }
+      }
+      Iter::new(fn(emit) {
+        for val in results {
+          if emit(val) == IterEnd {
+            break
+          }
+        }
+        IterContinue
+      })
+    }
+
+    // Math functions
+    @ast.Expr::Pow(exp_expr) => {
+      let exp_results = eval_with_env(exp_expr, input, env).collect()
+      if exp_results.is_empty() {
+        return Iter::singleton(Json::null())
+      }
+      match (input, exp_results[0]) {
+        (Number(base, ..), Number(exp, ..)) =>
+          Iter::singleton(Json::number(base.pow(exp)))
+        _ =>
+          raise InterpreterError::TypeMismatch("number", @json.type_name(input))
+      }
+    }
+    @ast.Expr::Log =>
+      match input {
+        Number(n, ..) => Iter::singleton(Json::number(@math.ln(n)))
+        _ =>
+          raise InterpreterError::TypeMismatch("number", @json.type_name(input))
+      }
+    @ast.Expr::Exp =>
+      match input {
+        Number(n, ..) => Iter::singleton(Json::number(@math.exp(n)))
+        _ =>
+          raise InterpreterError::TypeMismatch("number", @json.type_name(input))
+      }
+    @ast.Expr::Sin =>
+      match input {
+        Number(n, ..) => Iter::singleton(Json::number(@math.sin(n)))
+        _ =>
+          raise InterpreterError::TypeMismatch("number", @json.type_name(input))
+      }
+    @ast.Expr::Cos =>
+      match input {
+        Number(n, ..) => Iter::singleton(Json::number(@math.cos(n)))
+        _ =>
+          raise InterpreterError::TypeMismatch("number", @json.type_name(input))
+      }
+    @ast.Expr::Tan =>
+      match input {
+        Number(n, ..) => Iter::singleton(Json::number(@math.tan(n)))
+        _ =>
+          raise InterpreterError::TypeMismatch("number", @json.type_name(input))
+      }
+    @ast.Expr::Asin =>
+      match input {
+        Number(n, ..) => Iter::singleton(Json::number(@math.asin(n)))
+        _ =>
+          raise InterpreterError::TypeMismatch("number", @json.type_name(input))
+      }
+    @ast.Expr::Acos =>
+      match input {
+        Number(n, ..) => Iter::singleton(Json::number(@math.acos(n)))
+        _ =>
+          raise InterpreterError::TypeMismatch("number", @json.type_name(input))
+      }
+    @ast.Expr::Atan =>
+      match input {
+        Number(n, ..) => Iter::singleton(Json::number(@math.atan(n)))
+        _ =>
+          raise InterpreterError::TypeMismatch("number", @json.type_name(input))
+      }
+
+    // Regex functions (simple implementations)
+    @ast.Expr::Test(pattern) =>
+      match input {
+        String(s) => Iter::singleton(Json::boolean(s.contains(pattern)))
+        _ =>
+          raise InterpreterError::TypeMismatch("string", @json.type_name(input))
+      }
+    @ast.Expr::Match(pattern) =>
+      match input {
+        String(s) =>
+          if s.contains(pattern) {
+            Iter::singleton(
+              Json::object(
+                Map::from_array([
+                  ("match", Json::string(pattern)),
+                  ("offset", Json::number(0.0)),
+                  ("length", Json::number(pattern.length().to_double())),
+                  ("string", Json::string(s)),
+                  ("captures", Json::array([])),
+                ]),
+              ),
+            )
+          } else {
+            Iter::empty()
+          }
+        _ =>
+          raise InterpreterError::TypeMismatch("string", @json.type_name(input))
+      }
+    @ast.Expr::Capture(_pattern) =>
+      match input {
+        String(_s) => Iter::singleton(Json::object(Map::from_array([])))
+        _ =>
+          raise InterpreterError::TypeMismatch("string", @json.type_name(input))
+      }
+    @ast.Expr::Splits(pattern) =>
+      match input {
+        String(s) => {
+          let parts = s.split(pattern)
+          Iter::new(fn(emit) {
+            for part in parts {
+              if emit(Json::string(part.to_string())) == IterEnd {
+                break
+              }
+            }
+            IterContinue
+          })
+        }
+        _ =>
+          raise InterpreterError::TypeMismatch("string", @json.type_name(input))
+      }
+    @ast.Expr::Sub(pattern, replacement) =>
+      match input {
+        String(s) => {
+          let mut found_idx : Int? = None
+          let slen = s.length()
+          let plen = pattern.length()
+          for i = 0; i <= slen - plen; i = i + 1 {
+            if s.substring(start=i, end=i + plen) == pattern {
+              found_idx = Some(i)
+              break
+            }
+          }
+          match found_idx {
+            Some(i) =>
+              Iter::singleton(
+                Json::string(
+                  s.substring(end=i) +
+                  replacement +
+                  s.substring(start=i + pattern.length()),
+                ),
+              )
+            None => Iter::singleton(input)
+          }
+        }
+        _ =>
+          raise InterpreterError::TypeMismatch("string", @json.type_name(input))
+      }
+    @ast.Expr::GSub(pattern, replacement) =>
+      match input {
+        String(s) => {
+          let mut result = s
+          while true {
+            let mut found_idx : Int? = None
+            let rlen = result.length()
+            let plen = pattern.length()
+            for i = 0; i <= rlen - plen; i = i + 1 {
+              if result.substring(start=i, end=i + plen) == pattern {
+                found_idx = Some(i)
+                break
+              }
+            }
+            match found_idx {
+              Some(i) =>
+                result = result.substring(end=i) +
+                  replacement +
+                  result.substring(start=i + pattern.length())
+              None => break
+            }
+          }
+          Iter::singleton(Json::string(result))
+        }
+        _ =>
+          raise InterpreterError::TypeMismatch("string", @json.type_name(input))
+      }
+
     // Not yet implemented features
     _ =>
       raise InterpreterError::InvalidOperation(
@@ -1369,4 +1852,99 @@ fn recurse_all(input : Json) -> Iter[Json] {
       _ => Iter::empty()
     },
   )
+}
+
+///|
+/// Helper to set value at a path in JSON structure
+fn set_at_path(root : Json, path : Array[Json], value : Json) -> Json {
+  if path.is_empty() {
+    return value
+  }
+  let segment = path[0]
+  let remaining = path[1:]
+  match (root, segment) {
+    (Object(obj), String(key)) => {
+      let new_obj = Map::from_array(obj.iter().collect())
+      if remaining.length() == 0 {
+        new_obj[key] = value
+      } else {
+        let current = obj.get(key).unwrap_or(Json::null())
+        new_obj[key] = set_at_path(current, remaining.to_array(), value)
+      }
+      Json::object(new_obj)
+    }
+    (Array(arr), Number(idx, ..)) => {
+      let i = idx.to_int()
+      if i >= 0 && i < arr.length() {
+        let new_arr = arr.copy()
+        if remaining.length() == 0 {
+          new_arr[i] = value
+        } else {
+          new_arr[i] = set_at_path(arr[i], remaining.to_array(), value)
+        }
+        Json::array(new_arr)
+      } else {
+        root
+      }
+    }
+    _ => root
+  }
+}
+
+///|
+/// Helper to delete value at a path in JSON structure
+fn delete_at_path(root : Json, path : Array[Json]) -> Json {
+  if path.is_empty() {
+    return Json::null()
+  }
+  if path.length() == 1 {
+    let segment = path[0]
+    match (root, segment) {
+      (Object(obj), String(key)) => {
+        let new_obj = Map::from_array(obj.iter().collect())
+        new_obj.remove(key)
+        Json::object(new_obj)
+      }
+      (Array(arr), Number(idx, ..)) => {
+        let i = idx.to_int()
+        if i >= 0 && i < arr.length() {
+          let new_arr : Array[Json] = []
+          for j = 0; j < arr.length(); j = j + 1 {
+            if j != i {
+              new_arr.push(arr[j])
+            }
+          }
+          Json::array(new_arr)
+        } else {
+          root
+        }
+      }
+      _ => root
+    }
+  } else {
+    let segment = path[0]
+    let remaining = path[1:]
+    match (root, segment) {
+      (Object(obj), String(key)) => {
+        let new_obj = Map::from_array(obj.iter().collect())
+        match obj.get(key) {
+          Some(current) =>
+            new_obj[key] = delete_at_path(current, remaining.to_array())
+          None => ()
+        }
+        Json::object(new_obj)
+      }
+      (Array(arr), Number(idx, ..)) => {
+        let i = idx.to_int()
+        if i >= 0 && i < arr.length() {
+          let new_arr = arr.copy()
+          new_arr[i] = delete_at_path(arr[i], remaining.to_array())
+          Json::array(new_arr)
+        } else {
+          root
+        }
+      }
+      _ => root
+    }
+  }
 }

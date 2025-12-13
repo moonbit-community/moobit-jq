@@ -89,6 +89,35 @@ pub(all) enum Expr {
   Update(Expr, Expr)
   Assign(Expr, Expr)
   Alternative(Expr, Expr)
+  LTrimStr(String)
+  RTrimStr(String)
+  AsciiUpcase
+  AsciiDowncase
+  Nth(Int)
+  RIndex(Expr)
+  Paths
+  LeafPaths
+  GetPath(Expr)
+  SetPath(Expr, Expr)
+  DelPaths(Expr)
+  Limit(Int, Expr)
+  Until(Expr, Expr)
+  While(Expr, Expr)
+  Pow(Expr)
+  Log
+  Exp
+  Sin
+  Cos
+  Tan
+  Asin
+  Acos
+  Atan
+  Test(String)
+  Match(String)
+  Capture(String)
+  Splits(String)
+  Sub(String, String)
+  GSub(String, String)
 }
 pub impl Eq for Expr
 pub impl Show for Expr

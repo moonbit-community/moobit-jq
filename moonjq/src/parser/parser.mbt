@@ -678,6 +678,210 @@ fn Parser::parse_builtin(
       self.expect(@lexer.Token::TRParen)
       @ast.Expr::GroupBy(expr)
     }
+    "ltrimstr" => {
+      self.expect(@lexer.Token::TLParen)
+      match self.current() {
+        Some(@lexer.Token::TString(s)) => {
+          self.advance()
+          self.expect(@lexer.Token::TRParen)
+          @ast.Expr::LTrimStr(s)
+        }
+        _ => raise ParseError::InvalidSyntax("ltrimstr expects string argument")
+      }
+    }
+    "rtrimstr" => {
+      self.expect(@lexer.Token::TLParen)
+      match self.current() {
+        Some(@lexer.Token::TString(s)) => {
+          self.advance()
+          self.expect(@lexer.Token::TRParen)
+          @ast.Expr::RTrimStr(s)
+        }
+        _ => raise ParseError::InvalidSyntax("rtrimstr expects string argument")
+      }
+    }
+    "ascii_upcase" => @ast.Expr::AsciiUpcase
+    "ascii_downcase" => @ast.Expr::AsciiDowncase
+    "nth" => {
+      self.expect(@lexer.Token::TLParen)
+      match self.current() {
+        Some(@lexer.Token::TNumber(n)) => {
+          self.advance()
+          self.expect(@lexer.Token::TRParen)
+          @ast.Expr::Nth(n.to_int())
+        }
+        _ => raise ParseError::InvalidSyntax("nth expects number argument")
+      }
+    }
+    "rindex" => {
+      self.expect(@lexer.Token::TLParen)
+      let expr = self.parse_pipe()
+      self.expect(@lexer.Token::TRParen)
+      @ast.Expr::RIndex(expr)
+    }
+    "paths" => @ast.Expr::Paths
+    "leaf_paths" => @ast.Expr::LeafPaths
+    "getpath" => {
+      self.expect(@lexer.Token::TLParen)
+      let expr = self.parse_pipe()
+      self.expect(@lexer.Token::TRParen)
+      @ast.Expr::GetPath(expr)
+    }
+    "setpath" => {
+      self.expect(@lexer.Token::TLParen)
+      let path = self.parse_pipe()
+      self.expect(@lexer.Token::TSemicolon)
+      let value = self.parse_pipe()
+      self.expect(@lexer.Token::TRParen)
+      @ast.Expr::SetPath(path, value)
+    }
+    "delpaths" => {
+      self.expect(@lexer.Token::TLParen)
+      let expr = self.parse_pipe()
+      self.expect(@lexer.Token::TRParen)
+      @ast.Expr::DelPaths(expr)
+    }
+    "limit" => {
+      self.expect(@lexer.Token::TLParen)
+      match self.current() {
+        Some(@lexer.Token::TNumber(n)) => {
+          self.advance()
+          self.expect(@lexer.Token::TSemicolon)
+          let expr = self.parse_pipe()
+          self.expect(@lexer.Token::TRParen)
+          @ast.Expr::Limit(n.to_int(), expr)
+        }
+        _ => raise ParseError::InvalidSyntax("limit expects number argument")
+      }
+    }
+    "until" => {
+      self.expect(@lexer.Token::TLParen)
+      let cond = self.parse_pipe()
+      self.expect(@lexer.Token::TSemicolon)
+      let update = self.parse_pipe()
+      self.expect(@lexer.Token::TRParen)
+      @ast.Expr::Until(cond, update)
+    }
+    "while" => {
+      self.expect(@lexer.Token::TLParen)
+      let cond = self.parse_pipe()
+      self.expect(@lexer.Token::TSemicolon)
+      let update = self.parse_pipe()
+      self.expect(@lexer.Token::TRParen)
+      @ast.Expr::While(cond, update)
+    }
+    "recurse" =>
+      if self.consume(@lexer.Token::TLParen) {
+        let f = self.parse_pipe()
+        self.expect(@lexer.Token::TSemicolon)
+        let cond = self.parse_pipe()
+        self.expect(@lexer.Token::TRParen)
+        @ast.Expr::RecurseWith(f, cond)
+      } else {
+        @ast.Expr::Recurse
+      }
+    "walk" => {
+      self.expect(@lexer.Token::TLParen)
+      let expr = self.parse_pipe()
+      self.expect(@lexer.Token::TRParen)
+      @ast.Expr::Walk(expr)
+    }
+    "pow" => {
+      self.expect(@lexer.Token::TLParen)
+      let expr = self.parse_pipe()
+      self.expect(@lexer.Token::TRParen)
+      @ast.Expr::Pow(expr)
+    }
+    "log" => @ast.Expr::Log
+    "exp" => @ast.Expr::Exp
+    "sin" => @ast.Expr::Sin
+    "cos" => @ast.Expr::Cos
+    "tan" => @ast.Expr::Tan
+    "asin" => @ast.Expr::Asin
+    "acos" => @ast.Expr::Acos
+    "atan" => @ast.Expr::Atan
+    "test" => {
+      self.expect(@lexer.Token::TLParen)
+      match self.current() {
+        Some(@lexer.Token::TString(s)) => {
+          self.advance()
+          self.expect(@lexer.Token::TRParen)
+          @ast.Expr::Test(s)
+        }
+        _ => raise ParseError::InvalidSyntax("test expects string argument")
+      }
+    }
+    "match" => {
+      self.expect(@lexer.Token::TLParen)
+      match self.current() {
+        Some(@lexer.Token::TString(s)) => {
+          self.advance()
+          self.expect(@lexer.Token::TRParen)
+          @ast.Expr::Match(s)
+        }
+        _ => raise ParseError::InvalidSyntax("match expects string argument")
+      }
+    }
+    "capture" => {
+      self.expect(@lexer.Token::TLParen)
+      match self.current() {
+        Some(@lexer.Token::TString(s)) => {
+          self.advance()
+          self.expect(@lexer.Token::TRParen)
+          @ast.Expr::Capture(s)
+        }
+        _ => raise ParseError::InvalidSyntax("capture expects string argument")
+      }
+    }
+    "splits" => {
+      self.expect(@lexer.Token::TLParen)
+      match self.current() {
+        Some(@lexer.Token::TString(s)) => {
+          self.advance()
+          self.expect(@lexer.Token::TRParen)
+          @ast.Expr::Splits(s)
+        }
+        _ => raise ParseError::InvalidSyntax("splits expects string argument")
+      }
+    }
+    "sub" => {
+      self.expect(@lexer.Token::TLParen)
+      match self.current() {
+        Some(@lexer.Token::TString(pattern)) => {
+          self.advance()
+          self.expect(@lexer.Token::TSemicolon)
+          match self.current() {
+            Some(@lexer.Token::TString(replacement)) => {
+              self.advance()
+              self.expect(@lexer.Token::TRParen)
+              @ast.Expr::Sub(pattern, replacement)
+            }
+            _ =>
+              raise ParseError::InvalidSyntax("sub expects string replacement")
+          }
+        }
+        _ => raise ParseError::InvalidSyntax("sub expects string pattern")
+      }
+    }
+    "gsub" => {
+      self.expect(@lexer.Token::TLParen)
+      match self.current() {
+        Some(@lexer.Token::TString(pattern)) => {
+          self.advance()
+          self.expect(@lexer.Token::TSemicolon)
+          match self.current() {
+            Some(@lexer.Token::TString(replacement)) => {
+              self.advance()
+              self.expect(@lexer.Token::TRParen)
+              @ast.Expr::GSub(pattern, replacement)
+            }
+            _ =>
+              raise ParseError::InvalidSyntax("gsub expects string replacement")
+          }
+        }
+        _ => raise ParseError::InvalidSyntax("gsub expects string pattern")
+      }
+    }
     _ => raise ParseError::InvalidSyntax("Unknown function: \{name}")
   }
 }

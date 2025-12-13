@@ -79,4 +79,39 @@ pub(all) enum Expr {
   Update(Expr, Expr) // |=
   Assign(Expr, Expr) // =
   Alternative(Expr, Expr) // //
+  // Additional string functions
+  LTrimStr(String) // ltrimstr(str)
+  RTrimStr(String) // rtrimstr(str)
+  AsciiUpcase // ascii_upcase
+  AsciiDowncase // ascii_downcase
+  // Additional array functions
+  Nth(Int) // nth(n)
+  RIndex(Expr) // rindex(value)
+  // Path functions
+  Paths // paths
+  LeafPaths // leaf_paths
+  GetPath(Expr) // getpath(path)
+  SetPath(Expr, Expr) // setpath(path; value)
+  DelPaths(Expr) // delpaths(paths)
+  // Control flow
+  Limit(Int, Expr) // limit(n; expr)
+  Until(Expr, Expr) // until(cond; update)
+  While(Expr, Expr) // while(cond; update)
+  // Math functions
+  Pow(Expr) // pow(base; exp)
+  Log // log (natural log)
+  Exp // exp (e^x)
+  Sin // sin
+  Cos // cos
+  Tan // tan
+  Asin // asin
+  Acos // acos
+  Atan // atan
+  // Regex functions (stubs for now)
+  Test(String) // test(regex)
+  Match(String) // match(regex)
+  Capture(String) // capture(regex)
+  Splits(String) // splits(regex)
+  Sub(String, String) // sub(regex; replacement)
+  GSub(String, String) // gsub(regex; replacement)
 } derive(Show, Eq, ToJson)
