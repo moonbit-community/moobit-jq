@@ -6,15 +6,24 @@ import(
 )
 
 // Values
-pub fn eval(@ast.Expr, Json) -> Iterator[Json] raise
+pub fn eval(Query, Json) -> Iterator[Json] raise
 
-pub fn parse(String) -> @ast.Expr raise
+pub fn eval_all(Query, Json) -> Array[Json] raise
 
-pub fn run(String, String) -> Iterator[Json] raise
+pub fn parse(String) -> Query raise
+
+pub fn run(String, String) -> Array[Json] raise
+
+pub fn run_json(Query, Json) -> Array[Json] raise
 
 // Errors
 
 // Types and methods
+pub struct Query {
+  expr : @ast.Expr
+}
+pub fn Query::eval(Self, Json) -> Iterator[Json] raise
+pub fn Query::eval_all(Self, Json) -> Array[Json] raise
 
 // Type aliases
 
