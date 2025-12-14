@@ -3,7 +3,7 @@
 fn jq(query : String, input : String) -> String raise {
   let expr = @parser.parse(query)
   let json = @json.parse(input)
-  let results = @interpreter.eval(expr, json).collect()
+  let results = eval(expr, json).collect()
   // Format results as newline-separated JSON
   results.map(fn(j) { j.to_string() }).join("\n")
 }

@@ -6,9 +6,20 @@ import(
 )
 
 // Values
+pub fn lex(String) -> Array[Token] raise LexError
+
 pub fn parse(String) -> @ast.Expr raise
 
 // Errors
+pub suberror LexError {
+  UnexpectedChar(Int, Char)
+  UnterminatedString(Int)
+  InvalidNumber(Int, String)
+  InvalidEscape(Int, Char)
+}
+pub impl Eq for LexError
+pub impl Show for LexError
+
 pub(all) suberror ParseError {
   UnexpectedToken(String, String)
   UnexpectedEnd(String)
@@ -19,6 +30,67 @@ pub impl Eq for ParseError
 pub impl Show for ParseError
 
 // Types and methods
+pub(all) enum Token {
+  TNumber(Double)
+  TString(String)
+  TStringInterpolation(Array[(String, String?)])
+  TTrue
+  TFalse
+  TNull
+  TIdentifier(String)
+  TVariable(String)
+  TFormat(String)
+  TDot
+  TDotDot
+  TPipe
+  TComma
+  TColon
+  TSemicolon
+  TQuestion
+  TLParen
+  TRParen
+  TLBracket
+  TRBracket
+  TLBrace
+  TRBrace
+  TPlus
+  TMinus
+  TStar
+  TSlash
+  TPercent
+  TEq
+  TNeq
+  TLt
+  TLe
+  TGt
+  TGe
+  TAssign
+  TUpdate
+  TAlternative
+  TAddAssign
+  TSubAssign
+  TMulAssign
+  TDivAssign
+  TModAssign
+  TAltAssign
+  TAnd
+  TOr
+  TNot
+  TIf
+  TThen
+  TElse
+  TElif
+  TEnd
+  TAs
+  TReduce
+  TForeach
+  TTry
+  TCatch
+  TDef
+  TEof
+}
+pub impl Eq for Token
+pub impl Show for Token
 
 // Type aliases
 

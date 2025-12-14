@@ -238,3 +238,4 @@ test "lex: error - unexpected character" {
     _ => inspect(false, content="false")
   }
 }
+

@@ -2,8 +2,20 @@
 package "bobzhang/moonjq/ast"
 
 // Values
+pub fn eval(Expr, Json) -> Iterator[Json] raise
 
 // Errors
+pub(all) suberror InterpreterError {
+  TypeMismatch(String, String)
+  KeyNotFound(String)
+  IndexOutOfBounds(Int)
+  InvalidOperation(String)
+  DivisionByZero
+  TypeError(String)
+  EvalError(String)
+}
+pub impl Eq for InterpreterError
+pub impl Show for InterpreterError
 
 // Types and methods
 pub(all) enum BinaryOp {

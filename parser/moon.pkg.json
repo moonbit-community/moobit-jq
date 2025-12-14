@@ -1,6 +1,5 @@
 {
   "import": [
-    "bobzhang/moonjq/ast",
-    "bobzhang/moonjq/lexer"
+    "bobzhang/moonjq/ast"
   ]
 }

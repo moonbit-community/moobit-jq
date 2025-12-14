@@ -139,7 +139,7 @@ fn Lexer::lex_string(self : Lexer) -> Unit raise LexError {
         match self.current() {
           None => raise LexError::UnterminatedString(start)
           Some('(') => {
-            // String interpolation: \(expr)
+            // String interpolation: \\(expr)
             self.advance()
             parts.push((buf.to_string(), None))
             buf.reset()
@@ -222,82 +222,65 @@ fn Lexer::lex_string(self : Lexer) -> Unit raise LexError {
       }
     }
   }
-  // Check if we have interpolation
-  if parts.is_empty() {
-    self.add_token(TString(buf.to_string()))
+  parts.push((buf.to_string(), None))
+  if parts.length() == 1 && parts[0].1 == None {
+    self.add_token(TString(parts[0].0))
   } else {
-    parts.push((buf.to_string(), None))
     self.add_token(TStringInterpolation(parts))
   }
 }
 
 ///|
 /// Lex an identifier or keyword
-fn Lexer::lex_identifier(self : Lexer) -> Unit raise LexError {
+fn Lexer::lex_identifier(self : Lexer) -> Unit {
   let start = self.pos
-  while true {
-    match self.current() {
-      Some(c) if is_alnum(c) => self.advance()
-      _ => break
-    }
+  while self.current().map(is_alnum).unwrap_or(false) {
+    self.advance()
   }
-  let text = self.input[start:self.pos].to_string() catch {
-    _ => raise LexError::UnexpectedChar(start, ' ')
+  let text = try! self.input[start:self.pos].to_string()
+  match text {
+    "true" => self.add_token(TTrue)
+    "false" => self.add_token(TFalse)
+    "null" => self.add_token(TNull)
+    "and" => self.add_token(TAnd)
+    "or" => self.add_token(TOr)
+    "not" => self.add_token(TNot)
+    "if" => self.add_token(TIf)
+    "then" => self.add_token(TThen)
+    "else" => self.add_token(TElse)
+    "elif" => self.add_token(TElif)
+    "end" => self.add_token(TEnd)
+    "as" => self.add_token(TAs)
+    "reduce" => self.add_token(TReduce)
+    "foreach" => self.add_token(TForeach)
+    "try" => self.add_token(TTry)
+    "catch" => self.add_token(TCatch)
+    "def" => self.add_token(TDef)
+    _ => self.add_token(TIdentifier(text))
   }
-  let token = match text {
-    "true" => TTrue
-    "false" => TFalse
-    "null" => TNull
-    "and" => TAnd
-    "or" => TOr
-    "not" => TNot
-    "if" => TIf
-    "then" => TThen
-    "else" => TElse
-    "elif" => TElif
-    "end" => TEnd
-    "as" => TAs
-    "reduce" => TReduce
-    "foreach" => TForeach
-    "try" => TTry
-    "catch" => TCatch
-    "def" => TDef
-    _ => TIdentifier(text)
-  }
-  self.add_token(token)
 }
 
 ///|
 /// Lex a variable ($name)
-fn Lexer::lex_variable(self : Lexer) -> Unit raise LexError {
-  self.advance()
+fn Lexer::lex_variable(self : Lexer) -> Unit {
+  self.advance() // skip $
   let start = self.pos
-  while true {
-    match self.current() {
-      Some(c) if is_alnum(c) => self.advance()
-      _ => break
-    }
+  while self.current().map(is_alnum).unwrap_or(false) {
+    self.advance()
   }
-  let name = self.input[start:self.pos].to_string() catch {
-    _ => raise LexError::UnexpectedChar(start, '$')
-  }
+  let name = try! self.input[start:self.pos].to_string()
   self.add_token(TVariable(name))
 }
 
 ///|
-/// Lex a format specifier (@base64, @uri, etc.)
-fn Lexer::lex_format(self : Lexer) -> Unit raise LexError {
-  self.advance()
+/// Lex a format (@name)
+fn Lexer::lex_format(self : Lexer) -> Unit {
+  self.advance() // skip @
   let start = self.pos
-  while true {
-    match self.current() {
-      Some(c) if is_alnum(c) => self.advance()
-      _ => break
-    }
+  while self.current().map(is_alnum).unwrap_or(false) {
+    self.advance()
   }
-  let name = self.input[start:self.pos].to_string() catch {
-    _ => raise LexError::UnexpectedChar(start, '@')
-  }
+  let name = try! self.input[start:self.pos].to_string()
   self.add_token(TFormat(name))
 }
 
@@ -311,172 +294,165 @@ pub fn lex(input : String) -> Array[Token] raise LexError {
       None => break
       Some('#') => {
         lexer.skip_comment()
-        continue
       }
-      Some(c) =>
-        if is_digit(c) ||
-          (c == '-' && lexer.peek().map(is_digit).unwrap_or(false)) {
-          lexer.lex_number()
-        } else if c == '"' {
-          lexer.lex_string()
-        } else if is_alpha(c) {
-          lexer.lex_identifier()
-        } else if c == '$' {
-          lexer.lex_variable()
-        } else if c == '@' {
-          lexer.lex_format()
-        } else {
-          match c {
-            '.' => {
+      Some('"') => lexer.lex_string()
+      Some('$') => lexer.lex_variable()
+      Some('@') => lexer.lex_format()
+      Some(c) if is_digit(c) ||
+        (c == '-' && lexer.peek().map(is_digit).unwrap_or(false)) => lexer.lex_number()
+      Some(c) if is_alpha(c) => lexer.lex_identifier()
+      Some(c) => {
+        match c {
+          '.' => {
+            lexer.advance()
+            if lexer.current() == Some('.') {
               lexer.advance()
-              if lexer.current() == Some('.') {
-                lexer.advance()
-                lexer.add_token(TDotDot)
-              } else {
-                lexer.add_token(TDot)
-              }
+              lexer.add_token(TDotDot)
+            } else {
+              lexer.add_token(TDot)
             }
-            '|' => {
-              lexer.advance()
-              if lexer.current() == Some('=') {
-                lexer.advance()
-                lexer.add_token(TUpdate)
-              } else {
-                lexer.add_token(TPipe)
-              }
-            }
-            '/' => {
-              lexer.advance()
-              if lexer.current() == Some('/') {
-                lexer.advance()
-                if lexer.current() == Some('=') {
-                  lexer.advance()
-                  lexer.add_token(TAltAssign)
-                } else {
-                  lexer.add_token(TAlternative)
-                }
-              } else if lexer.current() == Some('=') {
-                lexer.advance()
-                lexer.add_token(TDivAssign)
-              } else {
-                lexer.add_token(TSlash)
-              }
-            }
-            '=' => {
-              lexer.advance()
-              if lexer.current() == Some('=') {
-                lexer.advance()
-                lexer.add_token(TEq)
-              } else {
-                lexer.add_token(TAssign)
-              }
-            }
-            '!' => {
-              lexer.advance()
-              if lexer.current() == Some('=') {
-                lexer.advance()
-                lexer.add_token(TNeq)
-              } else {
-                raise LexError::UnexpectedChar(lexer.pos - 1, '!')
-              }
-            }
-            '<' => {
-              lexer.advance()
-              if lexer.current() == Some('=') {
-                lexer.advance()
-                lexer.add_token(TLe)
-              } else {
-                lexer.add_token(TLt)
-              }
-            }
-            '>' => {
-              lexer.advance()
-              if lexer.current() == Some('=') {
-                lexer.advance()
-                lexer.add_token(TGe)
-              } else {
-                lexer.add_token(TGt)
-              }
-            }
-            ',' => {
-              lexer.advance()
-              lexer.add_token(TComma)
-            }
-            ':' => {
-              lexer.advance()
-              lexer.add_token(TColon)
-            }
-            ';' => {
-              lexer.advance()
-              lexer.add_token(TSemicolon)
-            }
-            '?' => {
-              lexer.advance()
-              lexer.add_token(TQuestion)
-            }
-            '(' => {
-              lexer.advance()
-              lexer.add_token(TLParen)
-            }
-            ')' => {
-              lexer.advance()
-              lexer.add_token(TRParen)
-            }
-            '[' => {
-              lexer.advance()
-              lexer.add_token(TLBracket)
-            }
-            ']' => {
-              lexer.advance()
-              lexer.add_token(TRBracket)
-            }
-            '{' => {
-              lexer.advance()
-              lexer.add_token(TLBrace)
-            }
-            '}' => {
-              lexer.advance()
-              lexer.add_token(TRBrace)
-            }
-            '+' => {
-              lexer.advance()
-              if lexer.current() == Some('=') {
-                lexer.advance()
-                lexer.add_token(TAddAssign)
-              } else {
-                lexer.add_token(TPlus)
-              }
-            }
-            '-' => {
-              lexer.advance()
-              if lexer.current() == Some('=') {
-                lexer.advance()
-                lexer.add_token(TSubAssign)
-              } else {
-                lexer.add_token(TMinus)
-              }
-            }
-            '*' => {
-              lexer.advance()
-              if lexer.current() == Some('=') {
-                lexer.advance()
-                lexer.add_token(TMulAssign)
-              } else {
-                lexer.add_token(TStar)
-              }
-            }
-            '%' => {
-              lexer.advance()
-              if lexer.current() == Some('=') {
-                lexer.advance()
-                lexer.add_token(TModAssign)
-              } else {
-                lexer.add_token(TPercent)
-              }
-            }
-            _ => raise LexError::UnexpectedChar(lexer.pos, c)
           }
+          '|' => {
+            lexer.advance()
+            if lexer.current() == Some('=') {
+              lexer.advance()
+              lexer.add_token(TUpdate)
+            } else {
+              lexer.add_token(TPipe)
+            }
+          }
+          '/' => {
+            lexer.advance()
+            if lexer.current() == Some('/') {
+              lexer.advance()
+              if lexer.current() == Some('=') {
+                lexer.advance()
+                lexer.add_token(TAltAssign)
+              } else {
+                lexer.add_token(TAlternative)
+              }
+            } else if lexer.current() == Some('=') {
+              lexer.advance()
+              lexer.add_token(TDivAssign)
+            } else {
+              lexer.add_token(TSlash)
+            }
+          }
+          '=' => {
+            lexer.advance()
+            if lexer.current() == Some('=') {
+              lexer.advance()
+              lexer.add_token(TEq)
+            } else {
+              lexer.add_token(TAssign)
+            }
+          }
+          '!' => {
+            lexer.advance()
+            if lexer.current() == Some('=') {
+              lexer.advance()
+              lexer.add_token(TNeq)
+            } else {
+              raise LexError::UnexpectedChar(lexer.pos, c)
+            }
+          }
+          '<' => {
+            lexer.advance()
+            if lexer.current() == Some('=') {
+              lexer.advance()
+              lexer.add_token(TLe)
+            } else {
+              lexer.add_token(TLt)
+            }
+          }
+          '>' => {
+            lexer.advance()
+            if lexer.current() == Some('=') {
+              lexer.advance()
+              lexer.add_token(TGe)
+            } else {
+              lexer.add_token(TGt)
+            }
+          }
+          ',' => {
+            lexer.advance()
+            lexer.add_token(TComma)
+          }
+          ':' => {
+            lexer.advance()
+            lexer.add_token(TColon)
+          }
+          ';' => {
+            lexer.advance()
+            lexer.add_token(TSemicolon)
+          }
+          '?' => {
+            lexer.advance()
+            lexer.add_token(TQuestion)
+          }
+          '(' => {
+            lexer.advance()
+            lexer.add_token(TLParen)
+          }
+          ')' => {
+            lexer.advance()
+            lexer.add_token(TRParen)
+          }
+          '[' => {
+            lexer.advance()
+            lexer.add_token(TLBracket)
+          }
+          ']' => {
+            lexer.advance()
+            lexer.add_token(TRBracket)
+          }
+          '{' => {
+            lexer.advance()
+            lexer.add_token(TLBrace)
+          }
+          '}' => {
+            lexer.advance()
+            lexer.add_token(TRBrace)
+          }
+          '+' => {
+            lexer.advance()
+            if lexer.current() == Some('=') {
+              lexer.advance()
+              lexer.add_token(TAddAssign)
+            } else {
+              lexer.add_token(TPlus)
+            }
+          }
+          '-' => {
+            lexer.advance()
+            if lexer.current() == Some('=') {
+              lexer.advance()
+              lexer.add_token(TSubAssign)
+            } else {
+              lexer.add_token(TMinus)
+            }
+          }
+          '*' => {
+            lexer.advance()
+            if lexer.current() == Some('=') {
+              lexer.advance()
+              lexer.add_token(TMulAssign)
+            } else {
+              lexer.add_token(TStar)
+            }
+          }
+          '%' => {
+            lexer.advance()
+            if lexer.current() == Some('=') {
+              lexer.advance()
+              lexer.add_token(TModAssign)
+            } else {
+              lexer.add_token(TPercent)
+            }
+          }
+          _ => raise LexError::UnexpectedChar(lexer.pos, c)
         }
+      }
     }
   }
   lexer.add_token(TEof)

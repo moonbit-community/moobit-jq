@@ -67,7 +67,7 @@ Use the `jq` helper function to evaluate queries:
 fn jq(query : String, input : String) -> String raise {
   let expr = @parser.parse(query)
   let json = @moonjq_json.parse(input)
-  @interpreter.eval(expr, json)
+  @ast.eval(expr, json)
   .collect()
   .map(fn(v) { v.to_string() })
   .join("\n")
@@ -191,12 +191,9 @@ test "readme: recursive descent" {
 moobit-jq/
 ├── moon.mod.json          # Module metadata
 ├── README.mbt.md          # This file (executable documentation)
-├── ast/                   # AST nodes (Expr, operators, literals)
-├── lexer/                 # Tokenization (String → Token stream)
-├── parser/                # Recursive-descent parser (Token → AST)
-├── interpreter/           # Streaming evaluator (AST → Iterator[Json])
+├── ast/                   # AST + streaming evaluator + integration tests
+├── parser/                # Parser (includes lexer)
 ├── json/                  # JSON value wrapper
-└── integration/           # End-to-end integration tests
 ```
 
 ## Development
@@ -208,10 +205,9 @@ moobit-jq/
 moon test
 
 # Run specific package tests
-moon test -p lexer
 moon test -p parser
-moon test -p interpreter
-moon test -p integration
+moon test -p ast
+moon test -p json
 
 # Type-check without running tests
 moon check
@@ -285,13 +281,13 @@ This repo is a MoonBit module with multiple packages; run commands against speci
 ```bash
 # Type-check a package (and its deps)
 moon check --package-path parser
-moon check --package-path interpreter
+moon check --package-path ast
 
 # Run tests
-moon test -p ast -p json -p lexer -p parser -p interpreter -p integration
+moon test -p ast -p json -p parser
 
 # Update snapshots (expect tests)
-moon test -p ast -p json -p lexer -p parser -p interpreter -p integration --update
+moon test -p ast -p json -p parser --update
 
 # Generate/update public interfaces (.mbti)
 moon info
