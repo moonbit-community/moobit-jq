@@ -3,5 +3,6 @@
   "version": "0.1.0",
   "repository": "git@github.com:moonbit-community/moobit-jq.git",
   "keywords": ["jq", "json", "query"],
-  "description": "A jq implementation in MoonBit"
+  "description": "A jq implementation in MoonBit",
+  "license": "Apache-2.0"
 }
