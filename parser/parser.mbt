@@ -59,18 +59,6 @@ fn Parser::consume(self : Parser, expected : @lexer.Token) -> Bool {
 }
 
 ///|
-/// Check if current token is an identifier with given name and consume it
-fn Parser::match_identifier(self : Parser, name : String) -> Bool {
-  match self.current() {
-    Some(@lexer.Token::TIdentifier(id)) if id == name => {
-      self.advance()
-      true
-    }
-    _ => false
-  }
-}
-
-///|
 /// Expect and consume a token, raise error if not found
 fn Parser::expect(
   self : Parser,

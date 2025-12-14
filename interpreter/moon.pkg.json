@@ -1,7 +1,9 @@
 {
   "import": [
     "bobzhang/moonjq/ast",
-    "bobzhang/moonjq/json",
+    "bobzhang/moonjq/json"
+  ],
+  "test-import": [
     "bobzhang/moonjq/parser"
   ]
 }

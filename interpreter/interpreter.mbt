@@ -12,7 +12,7 @@ pub(all) suberror InterpreterError {
 
 ///|
 /// Environment for variable and function bindings
-struct Env {
+priv struct Env {
   bindings : Map[String, Json]
   functions : Map[String, (@ast.Expr, Array[String])] // (body, params)
 }
@@ -1444,12 +1444,9 @@ fn eval_with_env(
     @ast.Expr::LTrimStr(prefix) =>
       match input {
         String(s) =>
-          if s.has_prefix(prefix) {
-            Iterator::singleton(
-              Json::string(s.substring(start=prefix.length())),
-            )
-          } else {
-            Iterator::singleton(input)
+          match s.strip_prefix(prefix[:]) {
+            Some(rest) => Iterator::singleton(Json::string(rest.to_string()))
+            None => Iterator::singleton(input)
           }
         _ =>
           raise InterpreterError::TypeMismatch("string", @json.type_name(input))
@@ -1457,12 +1454,9 @@ fn eval_with_env(
     @ast.Expr::RTrimStr(suffix) =>
       match input {
         String(s) =>
-          if s.has_suffix(suffix) {
-            Iterator::singleton(
-              Json::string(s.substring(end=s.length() - suffix.length())),
-            )
-          } else {
-            Iterator::singleton(input)
+          match s.strip_suffix(suffix[:]) {
+            Some(rest) => Iterator::singleton(Json::string(rest.to_string()))
+            None => Iterator::singleton(input)
           }
         _ =>
           raise InterpreterError::TypeMismatch("string", @json.type_name(input))
@@ -1473,7 +1467,7 @@ fn eval_with_env(
           let result = @buffer.new()
           for ch in s {
             if ch >= 'a' && ch <= 'z' {
-              result.write_char(Char::from_int(ch.to_int() - 32))
+              result.write_char(Int::unsafe_to_char(ch.to_int() - 32))
             } else {
               result.write_char(ch)
             }
@@ -1489,7 +1483,7 @@ fn eval_with_env(
           let result = @buffer.new()
           for ch in s {
             if ch >= 'A' && ch <= 'Z' {
-              result.write_char(Char::from_int(ch.to_int() + 32))
+              result.write_char(Int::unsafe_to_char(ch.to_int() + 32))
             } else {
               result.write_char(ch)
             }
@@ -1536,15 +1530,7 @@ fn eval_with_env(
         String(s) =>
           match needle {
             String(substr) => {
-              let mut last_pos : Int? = None
-              let slen = s.length()
-              let sublen = substr.length()
-              for i = 0; i <= slen - sublen; i = i + 1 {
-                if s.substring(start=i, end=i + sublen) == substr {
-                  last_pos = Some(i)
-                }
-              }
-              match last_pos {
+              match s.rev_find(substr[:]) {
                 Some(pos) => Iterator::singleton(Json::number(pos.to_double()))
                 None => Iterator::singleton(Json::null())
               }
@@ -1829,55 +1815,19 @@ fn eval_with_env(
       }
     @ast.Expr::Sub(pattern, replacement) =>
       match input {
-        String(s) => {
-          let mut found_idx : Int? = None
-          let slen = s.length()
-          let plen = pattern.length()
-          for i = 0; i <= slen - plen; i = i + 1 {
-            if s.substring(start=i, end=i + plen) == pattern {
-              found_idx = Some(i)
-              break
-            }
-          }
-          match found_idx {
-            Some(i) =>
-              Iterator::singleton(
-                Json::string(
-                  s.substring(end=i) +
-                  replacement +
-                  s.substring(start=i + pattern.length()),
-                ),
-              )
-            None => Iterator::singleton(input)
-          }
-        }
+        String(s) =>
+          Iterator::singleton(
+            Json::string(s.replace(old=pattern[:], new=replacement[:])),
+          )
         _ =>
           raise InterpreterError::TypeMismatch("string", @json.type_name(input))
       }
     @ast.Expr::GSub(pattern, replacement) =>
       match input {
-        String(s) => {
-          let mut result = s
-          while true {
-            let mut found_idx : Int? = None
-            let rlen = result.length()
-            let plen = pattern.length()
-            for i = 0; i <= rlen - plen; i = i + 1 {
-              if result.substring(start=i, end=i + plen) == pattern {
-                found_idx = Some(i)
-                break
-              }
-            }
-            match found_idx {
-              Some(i) =>
-                result = result.substring(end=i) +
-                  replacement +
-                  result.substring(start=i + pattern.length())
-              None => break
-            }
-          }
-          Iterator::singleton(Json::string(result))
-        }
+        String(s) =>
+          Iterator::singleton(
+            Json::string(s.replace_all(old=pattern[:], new=replacement[:])),
+          )
         _ =>
           raise InterpreterError::TypeMismatch("string", @json.type_name(input))
       }
@@ -1905,7 +1855,7 @@ fn eval_with_env(
         return Iterator::empty()
       }
       match (from_results[0], to_results[0]) {
-        (Number(from_num), Number(to_num)) => {
+        (Number(from_num, ..), Number(to_num, ..)) => {
           let from_int = from_num.to_int()
           let to_int = to_num.to_int()
           let results : Array[Json] = []
@@ -1927,7 +1877,7 @@ fn eval_with_env(
         return Iterator::empty()
       }
       match (from_results[0], to_results[0], step_results[0]) {
-        (Number(from_num), Number(to_num), Number(step_num)) => {
+        (Number(from_num, ..), Number(to_num, ..), Number(step_num, ..)) => {
           let from_int = from_num.to_int()
           let to_int = to_num.to_int()
           let step_int = step_num.to_int()
@@ -2000,7 +1950,7 @@ fn eval_with_env(
           let buffer = @buffer.new()
           for elem in arr {
             match elem {
-              Number(n) => {
+              Number(n, ..) => {
                 let code = n.to_int()
                 match Int::to_char(code) {
                   Some(c) => buffer.write_char(c)
@@ -2202,29 +2152,6 @@ fn eval_with_env(
       }
       Iterator::singleton(Json::boolean(all_true))
     }
-    @ast.Expr::Reduce(gen_expr, var_name, init_expr, update_expr) => {
-      let gen_results = eval_with_env(gen_expr, input, env).collect()
-      let init_results = eval_with_env(init_expr, input, env).collect()
-      if init_results.is_empty() {
-        return Iterator::empty()
-      }
-      let mut accumulator = init_results[0]
-      for gen_result in gen_results {
-        let mut new_env = Env::new()
-        for key, value in env.bindings {
-          new_env = new_env.set(key, value)
-        }
-        for key, value in env.functions {
-          new_env = new_env.set_function(key, value.0, value.1)
-        }
-        new_env = new_env.set(var_name, gen_result)
-        let update_results = eval_with_env(update_expr, accumulator, new_env).collect()
-        if not(update_results.is_empty()) {
-          accumulator = update_results[0]
-        }
-      }
-      Iterator::singleton(accumulator)
-    }
     @ast.Expr::Foreach(gen_expr, var_name, init_expr, update_expr, extract_expr) => {
       let gen_results = eval_with_env(gen_expr, input, env).collect()
       let init_results = eval_with_env(init_expr, input, env).collect()
@@ -2287,12 +2214,6 @@ fn eval_with_env(
         _ =>
           raise InterpreterError::TypeMismatch("string", @json.type_name(input))
       }
-
-    // Not yet implemented features
-    _ =>
-      raise InterpreterError::InvalidOperation(
-        "Feature not yet implemented: \{expr}",
-      )
   }
 }
 
@@ -2699,13 +2620,13 @@ fn base64_encode(bytes : Bytes) -> String {
   let len = bytes.length()
   let mut i = 0
   while i < len {
-    let b1 = bytes[i].to_int()
-    let b2 = if i + 1 < len { bytes[i + 1].to_int() } else { 0 }
-    let b3 = if i + 2 < len { bytes[i + 2].to_int() } else { 0 }
-    let c1 = b1.lsr(2)
-    let c2 = b1.land(0x03).lsl(4) | b2.lsr(4)
-    let c3 = b2.land(0x0f).lsl(2) | b3.lsr(6)
-    let c4 = b3 & 0x3f
+    let b1 : UInt = bytes[i].to_uint()
+    let b2 : UInt = if i + 1 < len { bytes[i + 1].to_uint() } else { 0 }
+    let b3 : UInt = if i + 2 < len { bytes[i + 2].to_uint() } else { 0 }
+    let c1 = (b1 >> 2).reinterpret_as_int()
+    let c2 = (((b1 & 0x03) << 4) | (b2 >> 4)).reinterpret_as_int()
+    let c3 = (((b2 & 0x0f) << 2) | (b3 >> 6)).reinterpret_as_int()
+    let c4 = (b3 & 0x3f).reinterpret_as_int()
     buf.write_char(chars.get_char(c1).unwrap())
     buf.write_char(chars.get_char(c2).unwrap())
     if i + 1 < len {
@@ -2726,45 +2647,73 @@ fn base64_encode(bytes : Bytes) -> String {
 ///|
 /// Simple base64 decoding
 fn base64_decode(s : String) -> Bytes raise InterpreterError {
-  let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+  let len = s.length()
+  if len % 4 != 0 {
+    raise InterpreterError::EvalError("Invalid base64")
+  }
+
+  fn base64_value(ch : Char) -> Int? {
+    match ch {
+      'A'..='Z' => Some(ch.to_int() - 'A'.to_int())
+      'a'..='z' => Some(26 + ch.to_int() - 'a'.to_int())
+      '0'..='9' => Some(52 + ch.to_int() - '0'.to_int())
+      '+' => Some(62)
+      '/' => Some(63)
+      _ => None
+    }
+  }
+
   let buf : Array[Byte] = []
   let mut i = 0
-  let len = s.length()
   while i < len {
-    let c1_opt = s.get_char(i)
-    let c2_opt = s.get_char(i + 1)
-    let c3_opt = s.get_char(i + 2)
-    let c4_opt = s.get_char(i + 3)
-    match (c1_opt, c2_opt, c3_opt, c4_opt) {
-      (Some(c1), Some(c2), Some(c3), Some(c4)) => {
-        let v1 = find_char_index(chars, c1)
-        let v2 = find_char_index(chars, c2)
-        let v3 = if c3 == '=' { 0 } else { find_char_index(chars, c3) }
-        let v4 = if c4 == '=' { 0 } else { find_char_index(chars, c4) }
-        buf.push(v1.lsl(2).lor(v2.lsr(4)).to_byte())
-        if c3 != '=' {
-          buf.push(v2.lsl(4).lor(v3.lsr(2)).land(0xff).to_byte())
-        }
-        if c4 != '=' {
-          buf.push(v3.lsl(6).lor(v4).land(0xff).to_byte())
-        }
-        i = i + 4
-      }
-      _ => break
-    }
-  }
-  Bytes::from_array(buf)
-}
+    let c1 = s.get_char(i).unwrap()
+    let c2 = s.get_char(i + 1).unwrap()
+    let c3 = s.get_char(i + 2).unwrap()
+    let c4 = s.get_char(i + 3).unwrap()
 
-///|
-/// Find character index in string
-fn find_char_index(s : String, ch : Char) -> Int {
-  let mut idx = 0
-  for c in s {
-    if c == ch {
-      return idx
+    let v1 = match base64_value(c1) {
+      Some(v) => v
+      None => raise InterpreterError::EvalError("Invalid base64")
     }
-    idx = idx + 1
+    let v2 = match base64_value(c2) {
+      Some(v) => v
+      None => raise InterpreterError::EvalError("Invalid base64")
+    }
+
+    // Padding can only appear in the final 4-character quantum.
+    if (c3 == '=' || c4 == '=') && i + 4 != len {
+      raise InterpreterError::EvalError("Invalid base64")
+    }
+
+    let v1u : UInt = v1.reinterpret_as_uint()
+    let v2u : UInt = v2.reinterpret_as_uint()
+    let b1 : UInt = (v1u << 2) | (v2u >> 4)
+    buf.push(b1.to_byte())
+
+    if c3 != '=' {
+      let v3 = match base64_value(c3) {
+        Some(v) => v
+        None => raise InterpreterError::EvalError("Invalid base64")
+      }
+      let v3u : UInt = v3.reinterpret_as_uint()
+      let b2 : UInt = ((v2u & 0x0f) << 4) | (v3u >> 2)
+      buf.push(b2.to_byte())
+
+      if c4 != '=' {
+        let v4 = match base64_value(c4) {
+          Some(v) => v
+          None => raise InterpreterError::EvalError("Invalid base64")
+        }
+        let v4u : UInt = v4.reinterpret_as_uint()
+        let b3 : UInt = ((v3u & 0x03) << 6) | v4u
+        buf.push(b3.to_byte())
+      }
+    } else if c4 != '=' {
+      raise InterpreterError::EvalError("Invalid base64")
+    }
+
+    i = i + 4
   }
-  0
+
+  Bytes::from_array(buf)
 }

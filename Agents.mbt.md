@@ -138,7 +138,7 @@ fn Rect::area(self : Rect) -> Int {
 
 ///|
 impl Show for Rect with output(self, logger) {
-  logger.write_string("Rect")
+  logger.write_string("Rect(\{self.width}x\{self.height})")
 }
 
 ///|
@@ -154,6 +154,7 @@ test "everything is expression in MoonBit" {
   let (n, opt) = (1, MySome(2))
   // if expressions return values
   let msg : String = if n > 0 { "pos" } else { "non-pos" }
+  inspect(msg, content="pos")
   let res = match opt {
     MySome(x) => {
       inspect(x, content="2")
@@ -161,11 +162,23 @@ test "everything is expression in MoonBit" {
     }
     MyNone => 0
   }
+  inspect(res, content="1")
   let status : Result[Int, String] = Ok(10)
   // match expressions return values
   let description = match status {
     Ok(value) => "Success: \{value}"
     Err(error) => "Error: \{error}"
+  }
+  inspect(description, content="Success: 10")
+  let rect = Rect::{ width: 3, height: 4 }
+  inspect(rect.area(), content="12")
+  inspect(rect.to_string(), content="Rect(3x4)")
+  let none_opt : MyOption = MyNone
+  inspect(none_opt.to_string(), content="MyNone")
+  try risky() catch {
+    _ => ()
+  } noraise {
+    _ => ()
   }
   let array = [1, 2, 3, 4, 5]
   let mut i = 0 // mutable bindings (local only, globals are immutable)
@@ -240,6 +253,10 @@ test "inspect test" {
   let point = Point::{ x: 10, y: 20 }
   // For complex structures, use @json.inspect for better readability:
   @json.inspect(point, content={ "x": 10, "y": 20 })
+  let ok : MyResult[Int, String] = MyOk(1)
+  let err : MyResult[Int, String] = MyErr("oops")
+  assert_eq(ok, MyOk(1))
+  assert_eq(err, MyErr("oops"))
 }
 ```
 
@@ -254,9 +271,15 @@ let (int, uint, uint16, int64, byte) : (Int, UInt, UInt16, Int64, Byte) = (
   1, 1, 1, 1, 1,
 )
 assert_eq(int, uint16.to_int())
+assert_eq(a0, 1)
+assert_eq(uint.reinterpret_as_int(), 1)
+assert_eq(int64.to_int(), 1)
+assert_eq(byte.to_int(), 1)
 // when the type is known, the literal can be overloaded
 let a1 : Int = 'b' // this also works, a5 will be the unicode value
 let a2 : Char = 'b'
+assert_eq(a1, 98)
+assert_eq(a2, 'b')
 ```
 ## Bytes
 
@@ -267,6 +290,8 @@ let b0 : Bytes = b"abcd"
 let b1 : Bytes = "abcd" // b" prefix is optional, when we know the type
 let b2 : Bytes = [0xff, 0x00, 0x01] // Array literal overloading
 assert_eq(b0[0], b'a') // indexing returns Byte
+assert_eq(b1.length(), 4)
+assert_eq(b2.length(), 3)
 ```
 ## Array
 
@@ -278,6 +303,10 @@ let a0 : Array[Int] = [1, 2, 3] // resizable
 let a1 : FixedArray[Int] = [1, 2, 3]
 let a2 : ReadOnlyArray[Int] = [1, 2, 3]
 let a3 : ArrayView[Int] = [1, 2, 3]
+assert_eq(a0.length(), 3)
+assert_eq(a1.length(), 3)
+assert_eq(a2.length(), 3)
+assert_eq(a3.length(), 3)
 ```
 
 ## String
@@ -299,6 +328,7 @@ assert_true(b1 is Some('a'..='z'))
 
 // ⚠️ Important: Variables won't work with direct indexing
 let eq_char : Char = '='
+assert_eq(eq_char, '=')
 // s.code_unit_at(0) == eq_char // ❌ Won't compile - eq_char is not a literal, lhs is UInt while rhs is Char
 // Use: s.code_unit_at(0) == '=' or s.get_char(0) == Some(eq_char)
 let bytes = @encoding/utf8.encode("中文") // utf8 encode package is in stdlib
@@ -319,6 +349,8 @@ let version = 1.0
 let message = "Hello \{name} v\{version}" // "Hello Moon v1.0"
 let desc = "Point at \{point}" // Uses point.to_string()
 // Works with any type implementing Show
+inspect(message, content="Hello Moon v1")
+assert_true(desc.contains("Point"[:]))
 
 // ❌ Wrong - quotes inside interpolation not allowed:
 // println("  - Checking if 'cache' section exists: \{config["cache"]}")
@@ -359,9 +391,11 @@ let map : Map[String, Int] = { "a": 1, "b": 2, "c": 3 }
 
 // Empty map
 let empty : Map[String, Int] = {}
+assert_eq(empty.length(), 0)
 
 // From array of pairs
 let from_pairs : Map[String, Int] = Map::from_array([("x", 1), ("y", 2)])
+assert_eq(from_pairs["x"], 1)
 
 // Set/update value
 map["new-key"] = 3
@@ -373,11 +407,14 @@ assert_eq(map.get("missing"), None)
 
 // Direct access (panics if key missing)
 let value : Int = map["a"] // value = 10
+assert_eq(value, 10)
 
 // Iteration preserves insertion order
+let entries : Array[String] = []
 for k, v in map {
-  println("\{k}: \{v}") // Prints: a: 10, b: 2, c: 3, new-key: 3
+  entries.push("\{k}: \{v}")
 }
+@json.inspect(entries, content=["a: 10", "b: 2", "c: 3", "new-key: 3"])
 
 // Other common operations
 map.remove("b")
@@ -458,6 +495,18 @@ fn sum_tree(tree : Tree[Int]) -> Int {
     Node(left~, x, right~) => sum_tree(left) + x + sum_tree(right)
   }
 }
+
+///|
+test "complex type examples" {
+  let uid : UserId = 123
+  assert_eq(uid, 123)
+  let handler = Handler(fn(_s) { () })
+  handler.0("hello")
+  assert_eq(raw, 100)
+  assert_eq(config.port, 8080)
+  let t : Tree[Int] = Node(left=Leaf(1), 2, right=Leaf(3))
+  assert_eq(sum_tree(t), 6)
+}
 ```
 
 ## Common Derivable Traits
@@ -482,6 +531,15 @@ enum Status {
   Active
   Inactive
 } derive(Show, Eq, Compare)
+
+///|
+test "derive examples" {
+  let c = Coordinate::{ x: 1, y: 2 }
+  assert_eq(c, Coordinate::{ x: 1, y: 2 })
+  let active = Active
+  let inactive = Inactive
+  assert_true(active != inactive)
+}
 ```
 
 **Best practice**: Always derive `Show` and `Eq` for data types. Add `ToJson` if you plan to test them with `@json.inspect()`.
@@ -522,6 +580,14 @@ test "ref swap" {
   let x : Ref[Int] = Ref::new(10)
   let y : Ref[Int] = Ref::new(20)
   swap_values(x, y) // x.val is now 20, y.val is now 10
+  assert_eq(x.val, 20)
+  assert_eq(y.val, 10)
+  let counter = Counter::{ value: 0 }
+  increment(counter)
+  assert_eq(counter.value, 1)
+  let arr = [1, 2, 3]
+  modify_array(arr)
+  assert_eq(arr[0], 999)
 }
 ```
 
@@ -561,6 +627,14 @@ fn is_palindrome(s : StringView) -> Bool {
     _ => false
   }
 }
+
+///|
+test "pattern matching examples" {
+  inspect(process_array([1, 2, 3]), content="first: 1, last: 3")
+  inspect(analyze_point(Point::{ x: 0, y: 0 }), content="origin")
+  assert_true(is_palindrome("aba"[:]))
+  assert_true(not(is_palindrome("abc"[:])))
+}
 ```
 
 ## Functional `loop` control flow
@@ -594,6 +668,13 @@ fn find_pair(arr : Array[Int], target : Int) -> (Int, Int)? {
       }
     }
   }
+}
+
+///|
+test "loop examples" {
+  let list : @list.List[Int] = @list.List::from_array([1, 2][:])
+  inspect(sum_list(list), content="3")
+  assert_eq(find_pair([1, 2, 3, 4], 5), Some((0, 3)))
 }
 ```
 
@@ -629,7 +710,12 @@ inspect(sum_result2, content="55")
 
 ```mbt check
 ///|
-type Window
+struct Window {
+  title : String
+  width : Int
+  height : Int
+  resizable : Bool
+} derive(Show, Eq)
 
 ///|
 fn create_window(
@@ -638,7 +724,7 @@ fn create_window(
   height? : Int = 600,
   resizable? : Bool = true,
 ) -> Window {
-  ... // `...` is a valid placeholder in MoonBit
+  { title, width, height, resizable }
 }
 
 ///|
@@ -649,11 +735,14 @@ test "use function with label and optional parameter" {
   // Call with named arguments in any order
   let win1 : Window = create_window(title="App", height=400, width=1024)
   let win2 : Window = create_window(title="Dialog", resizable=false)
+  inspect(win1.width, content="1024")
+  inspect(win2.resizable, content="False")
   // Pun syntax for named arguments
   let width = 1920
   let height = 1080
   let win3 : Window = create_window(title="Fullscreen", width~, height~)
   // Same as width=width, height=height
+  inspect(win3.to_string().contains("Window"[:]), content="True")
 }
 ```
 
@@ -685,7 +774,9 @@ fn parse_int(s : String) -> Int raise ParseError {
   if s.is_empty() {
     raise ParseError::InvalidEof
   }
-  ... // parsing logic
+  @strconv.parse_int(s[:]) catch {
+    _ => raise ParseError::InvalidNumber(Position(0, 0), s)
+  }
 }
 
 ///|
@@ -740,7 +831,10 @@ fn safe_parse(s : String) -> Result[Int, ParseError] {
   } noraise { // noraise block is optional - handles the success case
     v => Ok(v)
   }
-  ...
+  match val1 {
+    Ok(_) => val3
+    Err(_) => val3
+  }
 }
 
 ///|
@@ -748,10 +842,31 @@ fn safe_parse(s : String) -> Result[Int, ParseError] {
 fn handle_parse(s : String) -> Int {
   parse_int(s) catch {
     ParseError::InvalidEof => {
-      println("Parse failed: InvalidEof")
       -1 // Default value
     }
     _ => 2
+  }
+}
+
+///|
+fn value_error_example() -> Unit raise ValueError {
+  raise ValueError::ValueError("bad")
+}
+
+///|
+test "checked error examples" {
+  inspect(try? use_parse(), content="Ok(246)")
+  try use_parse2() catch {
+    _ => ()
+  } noraise {
+    v => inspect(v, content="246")
+  }
+  inspect(safe_parse("123"), content="Ok(123)")
+  inspect(handle_parse(""), content="-1")
+  try value_error_example() catch {
+    _ => ()
+  } noraise {
+    _ => ()
   }
 }
 ```
@@ -803,6 +918,21 @@ fn[T : Show + Named] describe(value : T) -> String {
 impl Hash for Rectangle with hash_combine(self, hasher) {
   hasher..combine(self.width)..combine(self.height)
 }
+
+///|
+impl Named for Rectangle with name() {
+  "Rectangle"
+}
+
+///|
+test "methods and traits examples" {
+  let rect = Rectangle::new(3.0, 4.0)
+  assert_eq(rect.area(), 12.0)
+  assert_true(describe(rect).contains("Rectangle"[:]))
+  let h1 = rect.hash()
+  let h2 = rect.hash()
+  assert_eq(h1, h2)
+}
 ```
 
 ## Operator Overloading
@@ -839,8 +969,15 @@ pub impl Compare for Person with compare(self, other) {
 test "overloading" {
   let v1 : Vector = Vector(1, 2)
   let v2 : Vector = Vector(3, 4)
-  let _v3 : Vector = v1 + v2
-
+  let v3 : Vector = v1 + v2
+  assert_eq(v3.0, 4)
+  assert_eq(v3.1, 6)
+  let v4 : Vector = v1 * v2
+  assert_eq(v4.0, 3)
+  assert_eq(v4.1, 8)
+  let p1 = Person::{ age: 10 }
+  let p2 = Person::{ age: 20 }
+  assert_true(p1 < p2)
 }
 ```
 
@@ -852,12 +989,12 @@ MoonBit has fine-grained visibility control:
 ///|
 /// `fn` defaults to Private - only visible in current package
 fn internal_helper() -> Unit {
-  ...
+  ()
 }
 
 ///|
 pub fn get_value() -> Int {
-  ...
+  42
 }
 
 ///|
@@ -880,6 +1017,15 @@ pub trait MyTrait {}
 ///|
 ///  Open for extension
 pub(open) trait Extendable {}
+
+///|
+test "access control examples" {
+  internal_helper()
+  inspect(get_value(), content="42")
+  let _ds = DataStructure::{}
+  let _cfg = Config::{}
+  let _cfg2 = Config2::{}
+}
 ```
 
 # Best Practices and Reference
@@ -1158,6 +1304,18 @@ let data : String =
   #|hello,
   #|world
   #|
+
+///|
+test "embedded data example" {
+  inspect(
+    data,
+    content=(
+      #|hello,
+      #|world
+      #|
+    ),
+  )
+}
 ```
 
 # Documentation
