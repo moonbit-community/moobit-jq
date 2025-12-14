@@ -1,3 +1,0 @@
-[submodule "vendor/oniguruma"]
-	path = vendor/oniguruma
-	url = https://github.com/kkos/oniguruma.git

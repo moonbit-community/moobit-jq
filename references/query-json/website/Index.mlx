@@ -1,9 +1,0 @@
-let () =
-  let document = Web.window |> Web.Window.document in
-  let element = document |> Web.Document.querySelector "#root" in
-  match element with
-  | Some el ->
-      let root = ReactDOM.Client.createRoot el in
-      let _ = ReactDOM.Client.render root <App /> in
-      ()
-  | None -> Js.log "No root element found"
