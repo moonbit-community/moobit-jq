@@ -2574,7 +2574,7 @@ fn uri_encode(s : String) -> String {
       | 0x2D
       | 0x5F
       | 0x2E
-       // A-Z
+      // A-Z
       // a-z
       // 0-9
       // -
