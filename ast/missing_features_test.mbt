@@ -283,7 +283,7 @@ test "missing: @uri format" {
   inspect(
     test_feature("@uri", "\"hello world\""),
     content=(
-      #|String("hello+world")
+      #|String("hello%20world")
     ),
   )
 }

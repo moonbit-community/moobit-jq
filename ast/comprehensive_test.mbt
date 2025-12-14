@@ -252,7 +252,7 @@ test "format: @base64d decoding" {
 test "format: @uri encoding" {
   inspect(
     test_query("@uri", "\"hello world\""),
-    content="String(\"hello+world\")",
+    content="String(\"hello%20world\")",
   )
 }
 
