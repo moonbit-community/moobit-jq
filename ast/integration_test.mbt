@@ -1,205 +1,148 @@
 ///|
 /// Integration helper to parse and eval
-fn jq(query : String, input : String) -> String raise {
+fn jq(query : String, input : String) -> Array[Json] raise {
   let expr = @parser.parse(query)
   let json = @json.parse(input)
-  let results = eval(expr, json).collect()
-  // Format results as newline-separated JSON
-  results.map(fn(j) { j.to_string() }).join("\n")
+  eval(expr, json).collect()
 }
 
 ///|
 /// Test basic identity and field access
 test "integration: basic queries" {
-  inspect(jq(".", "42"), content="Number(42)")
-  inspect(
-    jq(".foo", "{\"foo\": \"bar\"}"),
-    content=(
-      #|String("bar")
-    ),
-  )
-  inspect(jq(".a.b", "{\"a\": {\"b\": 123}}"), content="Number(123)")
+  @json.inspect(jq(".", "42"), content=[42])
+  @json.inspect(jq(".foo", "{\"foo\": \"bar\"}"), content=["bar"])
+  @json.inspect(jq(".a.b", "{\"a\": {\"b\": 123}}"), content=[123])
 }
 
 ///|
 /// Test array operations
 test "integration: array operations" {
-  inspect(
-    jq(".[]", "[1,2,3]"),
-    content=(
-      #|Number(1)
-      #|Number(2)
-      #|Number(3)
-    ),
-  )
-  inspect(jq(".[1]", "[10,20,30]"), content="Number(20)")
-  inspect(jq(".[-1]", "[10,20,30]"), content="Number(30)")
-  inspect(jq(".[1:3]", "[1,2,3,4,5]"), content="Array([Number(2), Number(3)])")
+  @json.inspect(jq(".[]", "[1,2,3]"), content=[1, 2, 3])
+  @json.inspect(jq(".[1]", "[10,20,30]"), content=[20])
+  @json.inspect(jq(".[-1]", "[10,20,30]"), content=[30])
+  @json.inspect(jq(".[1:3]", "[1,2,3,4,5]"), content=[[2, 3]])
 }
 
 ///|
 /// Test pipe and comma
 test "integration: pipe and comma" {
-  inspect(jq(". | . + 1", "5"), content="Number(6)")
-  inspect(jq(".a | .b", "{\"a\": {\"b\": 42}}"), content="Number(42)")
-  inspect(
-    jq(".a, .b", "{\"a\": 1, \"b\": 2}"),
-    content=(
-      #|Number(1)
-      #|Number(2)
-    ),
-  )
+  @json.inspect(jq(". | . + 1", "5"), content=[6])
+  @json.inspect(jq(".a | .b", "{\"a\": {\"b\": 42}}"), content=[42])
+  @json.inspect(jq(".a, .b", "{\"a\": 1, \"b\": 2}"), content=[1, 2])
 }
 
 ///|
 /// Test arithmetic
 test "integration: arithmetic" {
-  inspect(jq("1 + 2", "null"), content="Number(3)")
-  inspect(jq("10 - 3", "null"), content="Number(7)")
-  inspect(jq("6 * 7", "null"), content="Number(42)")
-  inspect(jq("20 / 4", "null"), content="Number(5)")
-  inspect(jq("17 % 5", "null"), content="Number(2)")
+  @json.inspect(jq("1 + 2", "null"), content=[3])
+  @json.inspect(jq("10 - 3", "null"), content=[7])
+  @json.inspect(jq("6 * 7", "null"), content=[42])
+  @json.inspect(jq("20 / 4", "null"), content=[5])
+  @json.inspect(jq("17 % 5", "null"), content=[2])
 }
 
 ///|
 /// Test string operations
 test "integration: strings" {
-  inspect(
-    jq("\"hello\" + \" \" + \"world\"", "null"),
-    content=(
-      #|String("hello world")
-    ),
-  )
-  inspect(
+  @json.inspect(jq("\"hello\" + \" \" + \"world\"", "null"), content=[
+    "hello world",
+  ])
+  @json.inspect(
     jq(".first + .last", "{\"first\": \"Hello\", \"last\": \" MoonBit\"}"),
-    content=(
-      #|String("Hello MoonBit")
-    ),
+    content=["Hello MoonBit"],
   )
 }
 
 ///|
 /// Test comparisons
 test "integration: comparisons" {
-  inspect(jq("1 < 2", "null"), content="True")
-  inspect(jq("5 > 10", "null"), content="False")
-  inspect(jq("3 == 3", "null"), content="True")
-  inspect(jq("4 != 5", "null"), content="True")
+  @json.inspect(jq("1 < 2", "null"), content=[true])
+  @json.inspect(jq("5 > 10", "null"), content=[false])
+  @json.inspect(jq("3 == 3", "null"), content=[true])
+  @json.inspect(jq("4 != 5", "null"), content=[true])
 }
 
 ///|
 /// Test array construction
 test "integration: array construction" {
-  inspect(
-    jq("[.a, .b, .c]", "{\"a\": 1, \"b\": 2, \"c\": 3}"),
-    content="Array([Number(1), Number(2), Number(3)])",
-  )
-  inspect(
-    jq("[.[] | . * 2]", "[1,2,3]"),
-    content="Array([Number(2), Number(4), Number(6)])",
-  )
+  @json.inspect(jq("[.a, .b, .c]", "{\"a\": 1, \"b\": 2, \"c\": 3}"), content=[
+    [1, 2, 3],
+  ])
+  @json.inspect(jq("[.[] | . * 2]", "[1,2,3]"), content=[[2, 4, 6]])
 }
 
 ///|
 /// Test object construction
 test "integration: object construction" {
-  inspect(
-    jq("{x: .a, y: .b}", "{\"a\": 10, \"b\": 20}"),
-    content=(
-      #|Object({"x": Number(10), "y": Number(20)})
-    ),
-  )
-  inspect(
-    jq("{result: (. + 1)}", "5"),
-    content=(
-      #|Object({"result": Number(6)})
-    ),
-  )
+  @json.inspect(jq("{x: .a, y: .b}", "{\"a\": 10, \"b\": 20}"), content=[
+    { "x": 10, "y": 20 },
+  ])
+  @json.inspect(jq("{result: (. + 1)}", "5"), content=[{ "result": 6 }])
 }
 
 ///|
 /// Test built-ins: length, keys, type
 test "integration: built-in functions" {
-  inspect(jq("length", "[1,2,3,4,5]"), content="Number(5)")
-  inspect(jq("length", "\"hello\""), content="Number(5)")
-  inspect(
-    jq("keys", "{\"b\": 1, \"a\": 2}"),
-    content=(
-      #|Array([String("b"), String("a")])
-    ),
-  )
-  inspect(
-    jq("type", "42"),
-    content=(
-      #|String("number")
-    ),
-  )
-  inspect(
-    jq("type", "\"hi\""),
-    content=(
-      #|String("string")
-    ),
-  )
+  @json.inspect(jq("length", "[1,2,3,4,5]"), content=[5])
+  @json.inspect(jq("length", "\"hello\""), content=[5])
+  @json.inspect(jq("keys", "{\"b\": 1, \"a\": 2}"), content=[["b", "a"]])
+  @json.inspect(jq("type", "42"), content=["number"])
+  @json.inspect(jq("type", "\"hi\""), content=["string"])
 }
 
 ///|
 /// Test control flow
 test "integration: control flow" {
-  inspect(
-    jq("if . > 5 then \"big\" else \"small\" end", "10"),
-    content=(
-      #|String("big")
-    ),
-  )
-  inspect(
-    jq("if . > 5 then \"big\" else \"small\" end", "2"),
-    content=(
-      #|String("small")
-    ),
-  )
+  @json.inspect(jq("if . > 5 then \"big\" else \"small\" end", "10"), content=[
+    "big",
+  ])
+  @json.inspect(jq("if . > 5 then \"big\" else \"small\" end", "2"), content=[
+    "small",
+  ])
 }
 
 ///|
 /// Test complex real-world query
 test "integration: filter and transform" {
-  let data = "{\"users\": [{\"name\": \"Alice\", \"age\": 25, \"active\": true}, {\"name\": \"Bob\", \"age\": 15, \"active\": false}, {\"name\": \"Charlie\", \"age\": 30, \"active\": true}]}"
+  let data : String =
+    #|{
+    #|  "users": [
+    #|    { "name": "Alice", "age": 25, "active": true },
+    #|    { "name": "Bob", "age": 15, "active": false },
+    #|    { "name": "Charlie", "age": 30, "active": true }
+    #|  ]
+    #|}
   // Filter users who are active
-  inspect(
-    jq(".users | .[] | select(.active) | .name", data),
-    content=(
-      #|String("Alice")
-      #|String("Charlie")
-    ),
-  )
+  @json.inspect(jq(".users | .[] | select(.active) | .name", data), content=[
+    "Alice", "Charlie",
+  ])
 }
 
 ///|
 /// Test optional operator
 test "integration: optional operator" {
-  inspect(jq(".a.b.c?", "{}"), content="Null")
-  inspect(jq(".x?", "{\"x\": 42}"), content="Number(42)")
+  @json.inspect(jq(".a.b.c?", "{}"), content=[null])
+  @json.inspect(jq(".x?", "{\"x\": 42}"), content=[42])
 }
 
 ///|
 /// Test alternative operator
 test "integration: alternative operator" {
-  inspect(jq(".a // .b", "{\"a\": null, \"b\": 10}"), content="Number(10)")
-  inspect(jq(".a // .b", "{\"a\": 5, \"b\": 10}"), content="Number(5)")
-  inspect(
-    jq(".missing // \"default\"", "{}"),
-    content=(
-      #|String("default")
-    ),
-  )
+  @json.inspect(jq(".a // .b", "{\"a\": null, \"b\": 10}"), content=[10])
+  @json.inspect(jq(".a // .b", "{\"a\": 5, \"b\": 10}"), content=[5])
+  @json.inspect(jq(".missing // \"default\"", "{}"), content=["default"])
 }
 
 ///|
 /// Test recursive descent
 test "integration: recursive descent" {
-  let data = "{\"a\": {\"b\": 1, \"c\": 2}}"
-  let result = jq("..", data)
-  // Should yield the input object, nested objects, and leaf values
-  inspect(result.contains("\"a\""), content="true")
+  let data : String =
+    #|{
+    #|  "a": { "b": 1, "c": 2 }
+    #|}
+  let results = jq("..", data)
+  // Should yield the input object first
+  @json.inspect(results[0], content={ "a": { "b": 1, "c": 2 } })
 }
 
 ///|
@@ -207,84 +150,66 @@ test "integration: recursive descent" {
 test "integration: error propagation" {
   // Division by zero should raise error
   let result = try? jq("1 / 0", "null")
-  inspect(result is Err(_), content="true")
+  assert_true(result is Err(_))
 }
 
 ///|
 /// Test map function
 test "integration: map function" {
-  inspect(
-    jq("map(. + 10)", "[1, 2, 3]"),
-    content="Array([Number(11), Number(12), Number(13)])",
-  )
-  inspect(
-    jq("map(. * 2)", "[5, 10, 15]"),
-    content="Array([Number(10), Number(20), Number(30)])",
-  )
+  @json.inspect(jq("map(. + 10)", "[1, 2, 3]"), content=[[11, 12, 13]])
+  @json.inspect(jq("map(. * 2)", "[5, 10, 15]"), content=[[10, 20, 30]])
 }
 
 ///|
 /// Test select function
 test "integration: select function" {
-  inspect(
-    jq(".[] | select(. > 3)", "[1, 2, 3, 4, 5]"),
-    content=(
-      #|Number(4)
-      #|Number(5)
-    ),
-  )
-  inspect(jq(".[] | select(. < 0)", "[1, 2, 3]"), content="")
+  @json.inspect(jq(".[] | select(. > 3)", "[1, 2, 3, 4, 5]"), content=[4, 5])
+  @json.inspect(jq(".[] | select(. < 0)", "[1, 2, 3]"), content=[])
 }
 
 ///|
 /// Test array functions
 test "integration: array functions" {
-  inspect(
-    jq("sort", "[3, 1, 4, 1, 5, 9, 2, 6]"),
-    content="Array([Number(1), Number(1), Number(2), Number(3), Number(4), Number(5), Number(6), Number(9)])",
-  )
-  inspect(
-    jq("reverse", "[1, 2, 3]"),
-    content="Array([Number(3), Number(2), Number(1)])",
-  )
-  inspect(
-    jq("unique", "[1, 2, 1, 3, 2]"),
-    content="Array([Number(1), Number(2), Number(3)])",
-  )
+  @json.inspect(jq("sort", "[3, 1, 4, 1, 5, 9, 2, 6]"), content=[
+    [1, 1, 2, 3, 4, 5, 6, 9],
+  ])
+  @json.inspect(jq("reverse", "[1, 2, 3]"), content=[[3, 2, 1]])
+  @json.inspect(jq("unique", "[1, 2, 1, 3, 2]"), content=[[1, 2, 3]])
 }
 
 ///|
 /// Test numeric functions
 test "integration: numeric functions" {
-  inspect(jq("add", "[1, 2, 3, 4, 5]"), content="Number(15)")
-  inspect(jq("min", "[5, 2, 8, 1]"), content="Number(1)")
-  inspect(jq("max", "[5, 2, 8, 1]"), content="Number(8)")
-  inspect(jq("floor", "3.7"), content="Number(3)")
-  inspect(jq("sqrt", "16"), content="Number(4)")
+  @json.inspect(jq("add", "[1, 2, 3, 4, 5]"), content=[15])
+  @json.inspect(jq("min", "[5, 2, 8, 1]"), content=[1])
+  @json.inspect(jq("max", "[5, 2, 8, 1]"), content=[8])
+  @json.inspect(jq("floor", "3.7"), content=[3])
+  @json.inspect(jq("sqrt", "16"), content=[4])
 }
 
 ///|
 /// Test complex nested query
 test "integration: complex nested query" {
-  let data = "{\"store\": {\"books\": [{\"title\": \"Book A\", \"price\": 10}, {\"title\": \"Book B\", \"price\": 15}]}}"
-  inspect(
-    jq(".store.books | .[] | .title", data),
-    content=(
-      #|String("Book A")
-      #|String("Book B")
-    ),
-  )
-  inspect(
-    jq(".store.books | map(.price)", data),
-    content="Array([Number(10), Number(15)])",
-  )
+  let data : String =
+    #|{
+    #|  "store": {
+    #|    "books": [
+    #|      { "title": "Book A", "price": 10 },
+    #|      { "title": "Book B", "price": 15 }
+    #|    ]
+    #|  }
+    #|}
+  @json.inspect(jq(".store.books | .[] | .title", data), content=[
+    "Book A", "Book B",
+  ])
+  @json.inspect(jq(".store.books | map(.price)", data), content=[[10, 15]])
 }
 
 ///|
 /// Test logical operators
 test "integration: logical operators" {
-  inspect(jq("true and false", "null"), content="False")
-  inspect(jq("true or false", "null"), content="True")
-  inspect(jq("not", "true"), content="False")
-  inspect(jq("not", "false"), content="True")
+  @json.inspect(jq("true and false", "null"), content=[false])
+  @json.inspect(jq("true or false", "null"), content=[true])
+  @json.inspect(jq("not", "true"), content=[false])
+  @json.inspect(jq("not", "false"), content=[true])
 }

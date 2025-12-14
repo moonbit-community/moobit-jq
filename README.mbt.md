@@ -67,10 +67,7 @@ Use the `jq` helper function to evaluate queries:
 fn jq(query : String, input : String) -> String raise {
   let expr = @parser.parse(query)
   let json = @moonjq_json.parse(input)
-  @ast.eval(expr, json)
-  .collect()
-  .map(fn(v) { v.to_string() })
-  .join("\n")
+  @ast.eval(expr, json).collect().map(fn(v) { v.to_string() }).join("\n")
 }
 ```
 

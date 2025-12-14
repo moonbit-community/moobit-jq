@@ -501,7 +501,7 @@ test "complex type examples" {
   let uid : UserId = 123
   assert_eq(uid, 123)
   let handler = Handler(fn(_s) { () })
-  handler.0("hello")
+  (handler.0)("hello")
   assert_eq(raw, 100)
   assert_eq(config.port, 8080)
   let t : Tree[Int] = Node(left=Leaf(1), 2, right=Leaf(3))
@@ -841,9 +841,7 @@ fn safe_parse(s : String) -> Result[Int, ParseError] {
 ///  3. Handle with try-catch
 fn handle_parse(s : String) -> Int {
   parse_int(s) catch {
-    ParseError::InvalidEof => {
-      -1 // Default value
-    }
+    ParseError::InvalidEof => -1 // Default value
     _ => 2
   }
 }
@@ -1022,9 +1020,10 @@ pub(open) trait Extendable {}
 test "access control examples" {
   internal_helper()
   inspect(get_value(), content="42")
-  let _ds = DataStructure::{}
-  let _cfg = Config::{}
-  let _cfg2 = Config2::{}
+  let _ds = DataStructure::{  }
+  let _cfg = Config::{  }
+  let _cfg2 = Config2::{  }
+
 }
 ```
 

@@ -60,10 +60,7 @@ fn Parser::consume(self : Parser, expected : Token) -> Bool {
 
 ///|
 /// Expect and consume a token, raise error if not found
-fn Parser::expect(
-  self : Parser,
-  expected : Token,
-) -> Unit raise ParseError {
+fn Parser::expect(self : Parser, expected : Token) -> Unit raise ParseError {
   match self.current() {
     Some(t) if t == expected => self.advance()
     Some(t) =>
