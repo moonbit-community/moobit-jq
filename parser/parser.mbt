@@ -357,21 +357,21 @@ fn Parser::parse_index_or_slice(
     let end = self.parse_slice_part()
     self.expect(Token::TRBracket)
     @ast.Expr::Pipe(base, @ast.Expr::Slice(start_or_index, end))
-	  } else {
-	    let indices : Array[Int] = []
-	    match start_or_index {
-	      Some(n) => indices.push(n)
-	      None => raise ParseError::InvalidSyntax("Expected index")
-	    }
-	    while self.consume(Token::TComma) {
-	      match self.parse_slice_part() {
-	        Some(n) => indices.push(n)
-	        None => raise ParseError::InvalidSyntax("Expected index after comma")
-	      }
-	    }
-	    self.expect(Token::TRBracket)
-	    @ast.Expr::Pipe(base, @ast.Expr::Index(indices))
-	  }
+  } else {
+    let indices : Array[Int] = []
+    match start_or_index {
+      Some(n) => indices.push(n)
+      None => raise ParseError::InvalidSyntax("Expected index")
+    }
+    while self.consume(Token::TComma) {
+      match self.parse_slice_part() {
+        Some(n) => indices.push(n)
+        None => raise ParseError::InvalidSyntax("Expected index after comma")
+      }
+    }
+    self.expect(Token::TRBracket)
+    @ast.Expr::Pipe(base, @ast.Expr::Index(indices))
+  }
 }
 
 ///|
@@ -527,15 +527,15 @@ fn Parser::parse_primary(self : Parser) -> @ast.Expr raise ParseError {
 ///|
 /// Parse object constructor  
 fn Parser::parse_object(self : Parser) -> @ast.Expr raise ParseError {
-	  if self.consume(Token::TRBrace) {
-	    return @ast.Expr::ObjectConstruct([])
-	  }
-	  let pairs : Array[(@ast.Expr, @ast.Expr?)] = []
-	  while true {
-	    let key = match self.current() {
-	      Some(Token::TIdentifier(name)) => {
-	        self.advance()
-	        @ast.Expr::Literal(@ast.Literal::String(name))
+  if self.consume(Token::TRBrace) {
+    return @ast.Expr::ObjectConstruct([])
+  }
+  let pairs : Array[(@ast.Expr, @ast.Expr?)] = []
+  while true {
+    let key = match self.current() {
+      Some(Token::TIdentifier(name)) => {
+        self.advance()
+        @ast.Expr::Literal(@ast.Literal::String(name))
       }
       Some(Token::TString(name)) => {
         self.advance()
@@ -549,16 +549,16 @@ fn Parser::parse_object(self : Parser) -> @ast.Expr raise ParseError {
       }
       _ => raise ParseError::InvalidSyntax("Expected object key")
     }
-	    let value = if self.consume(Token::TColon) {
-	      Some(self.parse_assignment())
-	    } else {
-	      None
-	    }
-	    pairs.push((key, value))
-	    if !self.consume(Token::TComma) {
-	      break
-	    }
-	    if self.check(Token::TRBrace) {
+    let value = if self.consume(Token::TColon) {
+      Some(self.parse_assignment())
+    } else {
+      None
+    }
+    pairs.push((key, value))
+    if !self.consume(Token::TComma) {
+      break
+    }
+    if self.check(Token::TRBrace) {
       break
     }
   }
