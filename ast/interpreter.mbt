@@ -130,21 +130,21 @@ fn eval_with_env(
       }
 
     // Array indexing and iteration
-    Expr::Index(indices) =>
-      if indices.is_empty() {
-        // Empty index means iterate over array/object values
-        match input {
-          Array(arr) => arr.iterator()
-          Object(obj) => {
-            let mut values : Array[Json] = []
-            for _k, v in obj {
-              values = values + [v]
-            }
-            values.iterator()
-          }
-          _ => Iterator::empty()
-        }
-      } else {
+	    Expr::Index(indices) =>
+	      if indices.is_empty() {
+	        // Empty index means iterate over array/object values
+	        match input {
+	          Array(arr) => arr.iterator()
+	          Object(obj) => {
+	            let values : Array[Json] = []
+	            for _k, v in obj {
+	              values.push(v)
+	            }
+	            values.iterator()
+	          }
+	          _ => Iterator::empty()
+	        }
+	      } else {
         // Multiple indices produce multiple results
         indices
         .iterator()
@@ -166,26 +166,26 @@ fn eval_with_env(
     // Array slicing
     Expr::Slice(start, end) =>
       match input {
-        Array(arr) => {
-          let len = arr.length()
-          let s = match start {
-            Some(n) => if n < 0 { len + n } else { n }
-            None => 0
-          }
-          let e = match end {
-            Some(n) => if n < 0 { len + n } else { n }
-            None => len
-          }
-          let mut result : Array[Json] = []
-          for i = s; i < e && i < len; i = i + 1 {
-            if i >= 0 {
-              result = result + [arr[i]]
-            }
-          }
-          Iterator::singleton(Json::array(result))
-        }
-        _ => Iterator::singleton(Json::null())
-      }
+	        Array(arr) => {
+	          let len = arr.length()
+	          let s = match start {
+	            Some(n) => if n < 0 { len + n } else { n }
+	            None => 0
+	          }
+	          let e = match end {
+	            Some(n) => if n < 0 { len + n } else { n }
+	            None => len
+	          }
+	          let result : Array[Json] = []
+	          for i = s; i < e && i < len; i = i + 1 {
+	            if i >= 0 {
+	              result.push(arr[i])
+	            }
+	          }
+	          Iterator::singleton(Json::array(result))
+	        }
+	        _ => Iterator::singleton(Json::null())
+	      }
 
     // Optional: suppress errors and return empty on failure
     Expr::Optional(inner) =>
@@ -249,17 +249,17 @@ fn eval_with_env(
     }
 
     // Binary operations
-    Expr::Operation(left, op, right) => {
-      let left_results = eval_with_env(left, input, env).collect()
-      let right_results = eval_with_env(right, input, env).collect()
-      let mut all_results : Array[Json] = []
-      for left_val in left_results {
-        for right_val in right_results {
-          all_results = all_results + [eval_binary_op(op, left_val, right_val)]
-        }
-      }
-      all_results.iterator()
-    }
+	    Expr::Operation(left, op, right) => {
+	      let left_results = eval_with_env(left, input, env).collect()
+	      let right_results = eval_with_env(right, input, env).collect()
+	      let all_results : Array[Json] = []
+	      for left_val in left_results {
+	        for right_val in right_results {
+	          all_results.push(eval_binary_op(op, left_val, right_val))
+	        }
+	      }
+	      all_results.iterator()
+	    }
 
     // Built-in functions
     Expr::Length => {
@@ -279,17 +279,14 @@ fn eval_with_env(
     Expr::Keys =>
       match input {
         Object(obj) => {
-          let mut keys : Array[Json] = []
+          let keys : Array[Json] = []
           for k, _v in obj {
-            keys = keys + [Json::string(k)]
+            keys.push(Json::string(k))
           }
           Iterator::singleton(Json::array(keys))
         }
         Array(arr) => {
-          let mut indices : Array[Json] = []
-          for i = 0; i < arr.length(); i = i + 1 {
-            indices = indices + [Json::number(i.to_double())]
-          }
+          let indices = arr.mapi((i, _) => Json::number(i.to_double()))
           Iterator::singleton(Json::array(indices))
         }
         _ =>
@@ -298,17 +295,17 @@ fn eval_with_env(
             json_type_name(input),
           )
       }
-    Expr::Values =>
-      match input {
-        Object(obj) => {
-          let mut values : Array[Json] = []
-          for _k, v in obj {
-            values = values + [v]
-          }
-          Iterator::singleton(Json::array(values))
-        }
-        Array(arr) => Iterator::singleton(Json::array(arr))
-        _ =>
+	    Expr::Values =>
+	      match input {
+	        Object(obj) => {
+	          let values : Array[Json] = []
+	          for _k, v in obj {
+	            values.push(v)
+	          }
+	          Iterator::singleton(Json::array(values))
+	        }
+	        Array(arr) => Iterator::singleton(Json::array(arr))
+	        _ =>
           raise InterpreterError::TypeMismatch(
             "object/array",
             json_type_name(input),
@@ -325,19 +322,21 @@ fn eval_with_env(
     }
 
     // Array functions
-    Expr::Map(inner) =>
-      match input {
-        Array(arr) => {
-          let mut results : Array[Json] = []
-          for elem in arr {
-            let mapped = eval_with_env(inner, elem, env).collect()
-            results = results + mapped
-          }
-          Iterator::singleton(Json::array(results))
-        }
-        _ =>
-          raise InterpreterError::TypeMismatch("array", json_type_name(input))
-      }
+	    Expr::Map(inner) =>
+	      match input {
+	        Array(arr) => {
+	          let results : Array[Json] = []
+	          for elem in arr {
+	            let mapped = eval_with_env(inner, elem, env).collect()
+	            for v in mapped {
+	              results.push(v)
+	            }
+	          }
+	          Iterator::singleton(Json::array(results))
+	        }
+	        _ =>
+	          raise InterpreterError::TypeMismatch("array", json_type_name(input))
+	      }
     Expr::Select(condition) => {
       let cond_results = eval_with_env(condition, input, env).collect()
       if cond_results.is_empty() {
@@ -364,18 +363,18 @@ fn eval_with_env(
         _ =>
           raise InterpreterError::TypeMismatch("array", json_type_name(input))
       }
-    Expr::Reverse =>
-      match input {
-        Array(arr) => {
-          let mut reversed : Array[Json] = []
-          for i = arr.length() - 1; i >= 0; i = i - 1 {
-            reversed = reversed + [arr[i]]
-          }
-          Iterator::singleton(Json::array(reversed))
-        }
-        _ =>
-          raise InterpreterError::TypeMismatch("array", json_type_name(input))
-      }
+	    Expr::Reverse =>
+	      match input {
+	        Array(arr) => {
+	          let reversed : Array[Json] = []
+	          for i = arr.length() - 1; i >= 0; i = i - 1 {
+	            reversed.push(arr[i])
+	          }
+	          Iterator::singleton(Json::array(reversed))
+	        }
+	        _ =>
+	          raise InterpreterError::TypeMismatch("array", json_type_name(input))
+	      }
     Expr::Flatten(depth_opt) =>
       match input {
         Array(arr) => {
@@ -388,29 +387,29 @@ fn eval_with_env(
         _ =>
           raise InterpreterError::TypeMismatch("array", json_type_name(input))
       }
-    Expr::Unique =>
-      match input {
-        Array(arr) => {
-          let sorted = arr.copy()
-          sorted.sort_by(compare_json)
-          let mut unique : Array[Json] = []
-          let mut prev : Json? = None
-          for elem in sorted {
-            match prev {
-              None => {
-                unique = unique + [elem]
-                prev = Some(elem)
-              }
-              Some(p) =>
-                if compare_json(p, elem) != 0 {
-                  unique = unique + [elem]
-                  prev = Some(elem)
-                }
-            }
-          }
-          Iterator::singleton(Json::array(unique))
-        }
-        _ =>
+	    Expr::Unique =>
+	      match input {
+	        Array(arr) => {
+	          let sorted = arr.copy()
+	          sorted.sort_by(compare_json)
+	          let unique : Array[Json] = []
+	          let mut prev : Json? = None
+	          for elem in sorted {
+	            match prev {
+	              None => {
+	                unique.push(elem)
+	                prev = Some(elem)
+	              }
+	              Some(p) =>
+	                if compare_json(p, elem) != 0 {
+	                  unique.push(elem)
+	                  prev = Some(elem)
+	                }
+	            }
+	          }
+	          Iterator::singleton(Json::array(unique))
+	        }
+	        _ =>
           raise InterpreterError::TypeMismatch("array", json_type_name(input))
       }
 
@@ -2316,26 +2315,26 @@ fn json_add(left : Json, right : Json) -> Json raise InterpreterError {
 }
 
 ///|
-fn json_subtract(left : Json, right : Json) -> Json raise InterpreterError {
-  match (left, right) {
-    (Number(a, ..), Number(b, ..)) => Json::number(a - b)
-    (Array(a), Array(b)) => {
-      let mut result : Array[Json] = []
-      for elem in a {
-        let mut found = false
-        for r in b {
-          if compare_json(elem, r) == 0 {
-            found = true
-            break
-          }
-        }
-        if not(found) {
-          result = result + [elem]
-        }
-      }
-      Json::array(result)
-    }
-    _ =>
+	fn json_subtract(left : Json, right : Json) -> Json raise InterpreterError {
+	  match (left, right) {
+	    (Number(a, ..), Number(b, ..)) => Json::number(a - b)
+	    (Array(a), Array(b)) => {
+	      let result : Array[Json] = []
+	      for elem in a {
+	        let mut found = false
+	        for r in b {
+	          if compare_json(elem, r) == 0 {
+	            found = true
+	            break
+	          }
+	        }
+	        if not(found) {
+	          result.push(elem)
+	        }
+	      }
+	      Json::array(result)
+	    }
+	    _ =>
       raise InterpreterError::InvalidOperation(
         "Cannot subtract \{json_type_name(right)} from \{json_type_name(left)}",
       )
@@ -2434,38 +2433,49 @@ fn compare_json(a : Json, b : Json) -> Int {
   }
 }
 
-///|
-/// Flatten array to specified depth
-fn flatten_array(arr : Array[Json], depth : Int) -> Array[Json] {
-  if depth <= 0 {
-    return arr
-  }
-  let mut result : Array[Json] = []
-  for elem in arr {
-    match elem {
-      Array(inner) => result = result + flatten_array(inner, depth - 1)
-      _ => result = result + [elem]
-    }
-  }
-  result
-}
+	///|
+	/// Flatten array to specified depth
+	fn flatten_array_into(arr : Array[Json], depth : Int, out : Array[Json]) -> Unit {
+	  if depth <= 0 {
+	    for elem in arr {
+	      out.push(elem)
+	    }
+	    return
+	  }
+	  for elem in arr {
+	    match elem {
+	      Array(inner) => flatten_array_into(inner, depth - 1, out)
+	      _ => out.push(elem)
+	    }
+	  }
+	}
+
+	///|
+	fn flatten_array(arr : Array[Json], depth : Int) -> Array[Json] {
+	  if depth <= 0 {
+	    return arr
+	  }
+	  let result : Array[Json] = []
+	  flatten_array_into(arr, depth, result)
+	  result
+	}
 
 ///|
 /// Recursive descent: yield input and all nested values
-fn recurse_all(input : Json) -> Iterator[Json] {
-  match input {
-    Array(arr) =>
-      Iterator::singleton(input).concat(arr.iterator().flat_map(recurse_all))
-    Object(obj) => {
-      let mut values : Array[Json] = []
-      for _k, v in obj {
-        values = values + [v]
-      }
-      Iterator::singleton(input).concat(values.iterator().flat_map(recurse_all))
-    }
-    _ => Iterator::singleton(input)
-  }
-}
+	fn recurse_all(input : Json) -> Iterator[Json] {
+	  match input {
+	    Array(arr) =>
+	      Iterator::singleton(input).concat(arr.iterator().flat_map(recurse_all))
+	    Object(obj) => {
+	      let values : Array[Json] = []
+	      for _k, v in obj {
+	        values.push(v)
+	      }
+	      Iterator::singleton(input).concat(values.iterator().flat_map(recurse_all))
+	    }
+	    _ => Iterator::singleton(input)
+	  }
+	}
 
 ///|
 /// Helper to set value at a path in JSON structure
