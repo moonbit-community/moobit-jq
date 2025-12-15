@@ -64,11 +64,11 @@ test "api: eval_logs handles CRLF" {
 test "api: eval_logs handle diagsnotics" {
   let logs =
     #| {"$message_type":"diagnostic","level":"error","loc":{"path":"/Users/dii/git/system-prompt/moonjq_api_test.mbt","start":{"line":64,"col":3},"end":{"line":64,"col":4}},"message":"The value identifier x is unbound.","error_code":4021}
-    #| {"$message_type":"diagnostic","level":"error","loc":{"path":"/Users/dii/git/system-prompt/moonjq_api_test.mbt","start":{"line":64,"col":3},"end":{"line":64,"col":4}},"message":"The value identifier y is unbound.","error_code":4021}#|
+    #| {"$message_type":"diagnostic","level":"error","loc":{"path":"/Users/dii/git/system-prompt/moonjq_api_test.mbt","start":{"line":64,"col":3},"end":{"line":64,"col":4}},"message":"The value identifier y is unbound.","error_code":4021}
     #| Failed with 0 warnings, 0 errors.
     #| error: failed when checking project
     #|
   @json.inspect(collect(@moonjq.parse(".message").eval_logs(logs)), content=[
-    "The value identifier x is unbound.",
+    "The value identifier x is unbound.", "The value identifier y is unbound.",
   ])
 }
