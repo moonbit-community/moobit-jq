@@ -131,6 +131,16 @@ test "coverage: map_values transforms object values" {
 }
 
 ///|
+test "coverage: sort_by empty key uses null" {
+  @json.inspect(cov_eval2("sort_by(empty)", "[2]"), content=[[2]])
+}
+
+///|
+test "coverage: group_by empty key uses null" {
+  @json.inspect(cov_eval2("group_by(empty)", "[1, 2]"), content=[[[1, 2]]])
+}
+
+///|
 test "coverage: getpath/setpath handle array segments" {
   @json.inspect(cov_eval2("getpath([1])", "[10, 20, 30]"), content=[20])
   @json.inspect(

@@ -1037,7 +1037,7 @@ fn Parser::parse_builtin(
     }
     "reduce" => {
       self.expect(TLParen)
-      let gen_expr = self.parse_pipe()
+      let gen_expr = self.parse_postfix()
       self.expect(TAs)
       match self.current() {
         Some(TVariable(var_name)) => {
@@ -1055,7 +1055,7 @@ fn Parser::parse_builtin(
     }
     "foreach" => {
       self.expect(TLParen)
-      let gen_expr = self.parse_pipe()
+      let gen_expr = self.parse_postfix()
       self.expect(TAs)
       match self.current() {
         Some(TVariable(var_name)) => {

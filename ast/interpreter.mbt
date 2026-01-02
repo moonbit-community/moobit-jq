@@ -1197,15 +1197,9 @@ fn eval_with_env(
         Object(_) | Array(_) => {
           // to_entries
           let entries_results = eval_with_env(ToEntries, input, env).collect()
-          if entries_results.is_empty() {
-            return Iterator::singleton(input)
-          }
           // Apply expression to each entry (like map)
           let entries_array = entries_results[0]
           let mapped_results = eval_with_env(Map(expr), entries_array, env).collect()
-          if mapped_results.is_empty() {
-            return Iterator::singleton(input)
-          }
           // from_entries
           eval_with_env(FromEntries, mapped_results[0], env)
         }
@@ -2070,7 +2064,12 @@ fn eval_with_env(
           let plen = pattern.length()
           let mut i = 0
           while i <= slen - plen {
-            let slice_result = s[i:i + plen] catch { _ => continue }
+            let slice_result = s[i:i + plen] catch {
+              _ => {
+                i = i + 1
+                continue
+              }
+            }
             if slice_result.to_string() == pattern {
               results.push(Json::string(pattern))
               i = i + plen

@@ -19,6 +19,13 @@ test "coverage: scan has misses and type mismatch" {
 }
 
 ///|
+test "coverage: scan skips invalid slice boundaries" {
+  let emoji = @encoding/utf8.decode([0xf0, 0x9f, 0x98, 0x80])
+  let input = "\"\{emoji}a\""
+  @json.inspect(cov_eval6("scan(\"a\")", input), content=["a"])
+}
+
+///|
 test "coverage: compare_json remaining base cases" {
   @json.inspect(cov_eval6("1 > null", "null"), content=[true])
   @json.inspect(cov_eval6("false < false", "null"), content=[false])
