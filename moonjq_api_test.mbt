@@ -61,6 +61,13 @@ test "api: eval_logs handles CRLF" {
 }
 
 ///|
+test "api: eval_logs handles explicit CRLF" {
+  let query = @moonjq.parse(".a")
+  let logs = "{\"a\":3}\r\n\r\ninvalid\r\n{\"a\":4}\r\n"
+  @json.inspect(collect(query.eval_logs(logs)), content=[3, 4])
+}
+
+///|
 test "api: eval_logs handle diagsnotics" {
   let logs =
     #| {"$message_type":"diagnostic","level":"error","loc":{"path":"/Users/dii/git/system-prompt/moonjq_api_test.mbt","start":{"line":64,"col":3},"end":{"line":64,"col":4}},"message":"The value identifier x is unbound.","error_code":4021}

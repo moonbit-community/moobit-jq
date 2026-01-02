@@ -1,4 +1,13 @@
 ///|
+fn lex_err(query : String) -> Bool {
+  try @parser.lex(query) catch {
+    _ => true
+  } noraise {
+    _ => false
+  }
+}
+
+///|
 test "coverage: peek at end of input" {
   // Triggers lexer.peek() at end for '-' number lookahead.
   inspect(@parser.lex("-"), content="[TMinus, TEof]")
@@ -34,4 +43,17 @@ test "coverage: interpolation lexer handles nested parens and strings" {
     }
     _ => inspect(false, content="expected TStringInterpolation")
   }
+}
+
+///|
+test "coverage: lex errors for unexpected characters" {
+  assert_true(lex_err("!"))
+  assert_true(lex_err("~"))
+}
+
+///|
+test "coverage: unterminated strings" {
+  assert_true(lex_err("\"abc"))
+  assert_true(lex_err("\"\\("))
+  assert_true(lex_err("\"\\(\""))
 }

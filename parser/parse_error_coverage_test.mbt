@@ -41,3 +41,32 @@ test "coverage: parse errors for function definitions" {
 test "coverage: parse errors for limit argument" {
   assert_true(parse_err("limit(\"2\"; .)"))
 }
+
+///|
+test "coverage: parse errors for as and index edge cases" {
+  assert_true(parse_err(". as 1 | ."))
+  assert_true(parse_err(".[,]"))
+  assert_true(parse_err(".[1,]"))
+  assert_true(parse_err(".[-]"))
+}
+
+///|
+test "coverage: parse errors for builtin argument validation" {
+  assert_true(parse_err("split(1)"))
+  assert_true(parse_err("join(1)"))
+  assert_true(parse_err("startswith(1)"))
+  assert_true(parse_err("endswith(1)"))
+  assert_true(parse_err("has(true)"))
+  assert_true(parse_err("range(.a)"))
+  assert_true(parse_err("any(.[])"))
+  assert_true(parse_err("all(.[])"))
+  assert_true(parse_err("ltrimstr(1)"))
+  assert_true(parse_err("rtrimstr(1)"))
+  assert_true(parse_err("nth(\"x\")"))
+}
+
+///|
+test "coverage: parse errors for reduce/foreach missing as" {
+  assert_true(parse_err("reduce .[] (0; . + $x)"))
+  assert_true(parse_err("foreach .[] (0; . + $x)"))
+}
