@@ -373,3 +373,11 @@ After: empty output tests live in ast/corner_cases_empty_test.mbt; has/in tests 
 - Example:
 Before: ast/jq_compat_test.mbt contained all compat cases together.
 After: ast/jq_compat_uri_test.mbt, ast/jq_compat_base64_test.mbt, ast/jq_compat_string_test.mbt, and ast/jq_compat_paths_test.mbt hold the cases.
+
+## 2026-01-03: Split parser construct tests
+- Problem: parser/parse_constructs_test.mbt mixed array/object construction with control flow constructs.
+- Change: Split into parser/parse_constructs_collection_test.mbt and parser/parse_constructs_control_flow_test.mbt.
+- Result: Construct parsing tests are grouped by concern with no behavior change.
+- Example:
+Before: parser/parse_constructs_test.mbt included array/object and if/try/recurse tests together.
+After: collection constructs live in parser/parse_constructs_collection_test.mbt; control flow constructs live in parser/parse_constructs_control_flow_test.mbt.
