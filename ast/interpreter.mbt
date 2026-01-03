@@ -617,122 +617,12 @@ fn eval_with_env(
     RIndex(search_expr) => eval_rindex(search_expr, input, env)
 
     // Path functions
-    Paths => {
-      let paths_list : Array[Json] = []
-      fn collect_paths(value : Json, path : Array[Json]) {
-        match value {
-          Object(obj) =>
-            for key, val in obj {
-              let new_path = path + [Json::string(key)]
-              paths_list.push(Json::array(new_path))
-              collect_paths(val, new_path)
-            }
-          Array(arr) =>
-            for i = 0; i < arr.length(); i = i + 1 {
-              let new_path = path + [Json::number(i.to_double())]
-              paths_list.push(Json::array(new_path))
-              collect_paths(arr[i], new_path)
-            }
-          _ => ()
-        }
-      }
-
-      collect_paths(input, [])
-      paths_list.iterator()
-    }
-    LeafPaths => {
-      let paths_list : Array[Json] = []
-      fn collect_leaf_paths(value : Json, path : Array[Json]) {
-        match value {
-          Object(obj) =>
-            if obj.is_empty() {
-              paths_list.push(Json::array(path))
-            } else {
-              for key, val in obj {
-                collect_leaf_paths(val, path + [Json::string(key)])
-              }
-            }
-          Array(arr) =>
-            if arr.is_empty() {
-              paths_list.push(Json::array(path))
-            } else {
-              for i = 0; i < arr.length(); i = i + 1 {
-                collect_leaf_paths(arr[i], path + [Json::number(i.to_double())])
-              }
-            }
-          _ => paths_list.push(Json::array(path))
-        }
-      }
-
-      collect_leaf_paths(input, [])
-      paths_list.iterator()
-    }
-    GetPath(path_expr) => {
-      let path_results = eval_with_env(path_expr, input, env).collect()
-      if path_results.is_empty() {
-        return Iterator::singleton(null)
-      }
-      match path_results[0] {
-        Array(path_arr) => {
-          let mut current = input
-          for segment in path_arr {
-            match (current, segment) {
-              (Object(obj), String(key)) =>
-                match obj.get(key) {
-                  Some(v) => current = v
-                  None => return Iterator::singleton(null)
-                }
-              (Array(arr), Number(idx, ..)) => {
-                let i = idx.to_int()
-                if i >= 0 && i < arr.length() {
-                  current = arr[i]
-                } else {
-                  return Iterator::singleton(null)
-                }
-              }
-              _ => return Iterator::singleton(null)
-            }
-          }
-          Iterator::singleton(current)
-        }
-        _ => Iterator::singleton(null)
-      }
-    }
-    SetPath(path_expr, value_expr) => {
-      let path_results = eval_with_env(path_expr, input, env).collect()
-      let value_results = eval_with_env(value_expr, input, env).collect()
-      if path_results.is_empty() || value_results.is_empty() {
-        return Iterator::singleton(input)
-      }
-      match path_results[0] {
-        Array(path_arr) =>
-          if path_arr.is_empty() {
-            Iterator::singleton(value_results[0])
-          } else {
-            Iterator::singleton(set_at_path(input, path_arr, value_results[0]))
-          }
-        _ => Iterator::singleton(input)
-      }
-    }
-    DelPaths(paths_expr) => {
-      let paths_results = eval_with_env(paths_expr, input, env).collect()
-      if paths_results.is_empty() {
-        return Iterator::singleton(input)
-      }
-      match paths_results[0] {
-        Array(paths_arr) => {
-          let mut result = input
-          for path_json in paths_arr {
-            match path_json {
-              Array(path) => result = delete_at_path(result, path)
-              _ => ()
-            }
-          }
-          Iterator::singleton(result)
-        }
-        _ => Iterator::singleton(input)
-      }
-    }
+    Paths => eval_paths(input)
+    LeafPaths => eval_leaf_paths(input)
+    GetPath(path_expr) => eval_get_path(path_expr, input, env)
+    SetPath(path_expr, value_expr) =>
+      eval_set_path(path_expr, value_expr, input, env)
+    DelPaths(paths_expr) => eval_del_paths(paths_expr, input, env)
 
     // Control flow
     Limit(n, expr) => eval_with_env(expr, input, env).take(n)

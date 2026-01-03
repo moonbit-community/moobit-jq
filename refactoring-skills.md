@@ -61,3 +61,11 @@ After: ast/interpreter_object_array_ops.mbt provides eval_* helpers for those ca
 - Example:
 Before: ast/interpreter.mbt contained range/index helpers inline in multiple blocks.
 After: ast/interpreter_iteration.mbt hosts the shared eval_* implementations.
+
+## 2026-01-03: Extract path evaluators
+- Problem: Path traversal logic was embedded directly in the evaluator dispatch.
+- Change: Moved Paths/LeafPaths/GetPath/SetPath/DelPaths into ast/interpreter_paths.mbt.
+- Result: Path behavior stays the same with a smaller eval switch.
+- Example:
+Before: ast/interpreter.mbt had path evaluation bodies inline.
+After: ast/interpreter_paths.mbt provides eval_* helpers for path operations.
