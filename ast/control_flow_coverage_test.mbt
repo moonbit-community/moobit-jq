@@ -1,11 +1,4 @@
 ///|
-fn coverage_eval(query : String, input : String) -> Array[Json] raise {
-  let expr = @parser.parse(query)
-  let json_input = @json.parse(input[:])
-  @ast.eval(expr, json_input).collect()
-}
-
-///|
 test "coverage: while yields intermediate values" {
   @json.inspect(coverage_eval("while(. < 4; . + 1)", "1"), content=[1, 2, 3])
 }

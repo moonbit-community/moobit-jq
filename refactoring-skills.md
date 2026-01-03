@@ -293,3 +293,11 @@ After: ast/integration_basic_test.mbt, ast/integration_operators_test.mbt, ast/i
 - Example:
 Before: parser/lexer.mbt matched punctuation and operator cases inline.
 After: parser/lexer_symbol.mbt hosts lex_symbol with the same cases.
+
+## 2026-01-03: Consolidate coverage eval helpers
+- Problem: Coverage tests repeated nearly identical parse/eval helpers under different names.
+- Change: Added ast/coverage_eval_helpers_test.mbt with coverage_eval and routed coverage tests to it.
+- Result: Coverage tests share one helper without changing behavior.
+- Example:
+Before: ast/coverage_extensive_test.mbt defined cov_eval2 and ast/regex_coverage_test.mbt defined regex_eval.
+After: both use coverage_eval from ast/coverage_eval_helpers_test.mbt.
