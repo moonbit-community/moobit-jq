@@ -445,3 +445,11 @@ After: coverage_error_control_flow_test.mbt, coverage_format_string_mismatch_tes
 - Example:
 Before: ast/coverage_type_mismatch_test.mbt held iterator, object, and builtin mismatch checks together.
 After: iterator/object edges, length/keys/values, array builtins, and numeric mismatches live in dedicated files.
+
+## 2026-01-03: Split extensive coverage tests by feature
+- Problem: ast/coverage_extensive_test.mbt mixed flatten, entries, range/predicates, index helpers, select/try, update/path, paths/csv, and sort/group coverage.
+- Change: Split into focused coverage files per feature area.
+- Result: Extensive coverage cases are grouped by concern with unchanged behavior.
+- Example:
+Before: ast/coverage_extensive_test.mbt bundled all extensive coverage scenarios.
+After: coverage_flatten_entries_test.mbt, coverage_range_predicates_test.mbt, coverage_index_helpers_success_test.mbt, coverage_select_try_test.mbt, coverage_update_paths_test.mbt, coverage_paths_csv_map_values_test.mbt, and coverage_sort_group_empty_key_test.mbt separate the cases.
