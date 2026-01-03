@@ -47,19 +47,24 @@ fn Lexer::lex_string(self : Lexer) -> Unit raise LexError {
                     Some('"') => {
                       // Skip nested strings
                       self.advance()
-                      while true {
-                        match self.current() {
-                          Some('"') => {
-                            self.advance()
-                            break
+                      let _ = loop () {
+                        _ =>
+                          match self.current() {
+                            Some('"') => {
+                              self.advance()
+                              ()
+                            }
+                            Some('\\') => {
+                              self.advance()
+                              self.advance()
+                              continue ()
+                            }
+                            None => raise UnterminatedString(start)
+                            _ => {
+                              self.advance()
+                              continue ()
+                            }
                           }
-                          Some('\\') => {
-                            self.advance()
-                            self.advance()
-                          }
-                          None => raise UnterminatedString(start)
-                          _ => self.advance()
-                        }
                       }
                       continue paren_depth
                     }

@@ -654,6 +654,14 @@ After: both use loop state with `continue` to update.
 Before: lex and skip_whitespace used while/break.
 After: they use `loop () { ... continue () }` with match branches returning unit.
 
+## 2026-01-03: Use loop state for object constructors and nested strings
+- Problem: parse_object and nested string skips relied on `while true` loops with breaks.
+- Change: Rewrote object pair parsing and nested string skipping with loop-state expressions.
+- Result: Parser and lexer remove the last `while true` loops while preserving behavior.
+- Example:
+Before: parse_object and nested string skip used while/break.
+After: parse_object uses `loop` with an accumulator; nested string skip uses `loop ()`.
+
 ## 2026-01-03: Use Ref state for repeat iterator
 - Problem: eval_repeat used a mutable index in an iterator closure.
 - Change: Switched to Ref[Int] to hold iterator state without a `let mut`.

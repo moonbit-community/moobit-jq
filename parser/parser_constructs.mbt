@@ -4,36 +4,36 @@ fn Parser::parse_object(self : Parser) -> @ast.Expr raise ParseError {
   if self.consume(TRBrace) {
     return @ast.Expr::ObjectConstruct([])
   }
-  let pairs : Array[(@ast.Expr, @ast.Expr?)] = []
-  while true {
-    let key = match self.current() {
-      Some(TIdentifier(name)) => {
-        self.advance()
-        @ast.Expr::Literal(@ast.Literal::String(name))
+  let pairs : Array[(@ast.Expr, @ast.Expr?)] = loop [] {
+    acc => {
+      let key = match self.current() {
+        Some(TIdentifier(name)) => {
+          self.advance()
+          @ast.Expr::Literal(@ast.Literal::String(name))
+        }
+        Some(TString(name)) => {
+          self.advance()
+          @ast.Expr::Literal(@ast.Literal::String(name))
+        }
+        Some(TLParen) => {
+          self.advance()
+          let expr = self.parse_pipe()
+          self.expect(TRParen)
+          expr
+        }
+        _ => raise InvalidSyntax("Expected object key")
       }
-      Some(TString(name)) => {
-        self.advance()
-        @ast.Expr::Literal(@ast.Literal::String(name))
+      let value = if self.consume(TColon) {
+        Some(self.parse_assignment())
+      } else {
+        None
       }
-      Some(TLParen) => {
-        self.advance()
-        let expr = self.parse_pipe()
-        self.expect(TRParen)
-        expr
+      acc.push((key, value))
+      if !self.consume(TComma) || self.check(TRBrace) {
+        acc
+      } else {
+        continue acc
       }
-      _ => raise InvalidSyntax("Expected object key")
-    }
-    let value = if self.consume(TColon) {
-      Some(self.parse_assignment())
-    } else {
-      None
-    }
-    pairs.push((key, value))
-    if !self.consume(TComma) {
-      break
-    }
-    if self.check(TRBrace) {
-      break
     }
   }
   self.expect(TRBrace)
