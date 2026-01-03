@@ -77,3 +77,11 @@ After: ast/interpreter_paths.mbt provides eval_* helpers for path operations.
 - Example:
 Before: ast/interpreter.mbt implemented regex helpers inline.
 After: ast/interpreter_regex.mbt contains eval_* regex helpers.
+
+## 2026-01-03: Extract extra feature evaluators
+- Problem: The "newly added features" block was large and hard to scan in the evaluator.
+- Change: Moved MapValues/Range*/Gen*/JSON helpers and related utilities into ast/interpreter_extras.mbt.
+- Result: Extra features are grouped together and the main dispatch is shorter.
+- Example:
+Before: ast/interpreter.mbt housed MapValues, RangeWithStep, UniqueBy, Foreach, Scan, and more inline.
+After: ast/interpreter_extras.mbt provides eval_* helpers for those cases.
