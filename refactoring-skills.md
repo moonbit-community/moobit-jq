@@ -493,3 +493,11 @@ After: sum_numbers/min_in_view/max_in_view and pick_min_by/pick_max_by use neste
 - Example:
 Before: json_subtract used nested loops and mutable flags; eval_combinations built results with mutable arrays.
 After: array_without/cartesian_product/build_columns use recursive pattern matching to build results.
+
+## 2026-01-03: Use pattern matching for index helpers and array compare
+- Problem: index helpers and array comparison relied on mutable indices and loops.
+- Change: Added recursive ArrayView helpers with nested pattern matching for indices/index/rindex and array comparison.
+- Result: More declarative control flow with less mutation while preserving behavior.
+- Example:
+Before: eval_index_of and compare_json used for-loops over arrays.
+After: find_first_index/find_last_index and compare_array_view recursively match ArrayView tails.

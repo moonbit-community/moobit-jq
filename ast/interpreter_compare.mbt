@@ -11,20 +11,7 @@ fn compare_json(a : Json, b : Json) -> Int {
     (True, True) => 0
     (Number(x, ..), Number(y, ..)) => x.compare(y)
     (String(x), String(y)) => x.compare(y)
-    (Array(x), Array(y)) => {
-      let min_len = if x.length() < y.length() {
-        x.length()
-      } else {
-        y.length()
-      }
-      for i = 0; i < min_len; i = i + 1 {
-        let cmp = compare_json(x[i], y[i])
-        if cmp != 0 {
-          return cmp
-        }
-      }
-      x.length().compare(y.length())
-    }
+    (Array(x), Array(y)) => compare_array_view(x[:], y[:])
     // Type ordering: null < bool < number < string < array < object
     (False | True, Number(_)) => -1
     (Number(_), False | True) => 1
@@ -36,5 +23,22 @@ fn compare_json(a : Json, b : Json) -> Int {
     (Object(_), Array(_)) => 1
     (Object(_), Object(_)) => 0 // Objects compare equal
     _ => 0
+  }
+}
+
+///|
+fn compare_array_view(a : ArrayView[Json], b : ArrayView[Json]) -> Int {
+  match (a, b) {
+    ([], []) => 0
+    ([], _) => -1
+    (_, []) => 1
+    ([head_a, ..tail_a], [head_b, ..tail_b]) => {
+      let cmp = compare_json(head_a, head_b)
+      if cmp != 0 {
+        cmp
+      } else {
+        compare_array_view(tail_a, tail_b)
+      }
+    }
   }
 }
