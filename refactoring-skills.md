@@ -453,3 +453,11 @@ After: iterator/object edges, length/keys/values, array builtins, and numeric mi
 - Example:
 Before: ast/coverage_extensive_test.mbt bundled all extensive coverage scenarios.
 After: coverage_flatten_entries_test.mbt, coverage_range_predicates_test.mbt, coverage_index_helpers_success_test.mbt, coverage_select_try_test.mbt, coverage_update_paths_test.mbt, coverage_paths_csv_map_values_test.mbt, and coverage_sort_group_empty_key_test.mbt separate the cases.
+
+## 2026-01-03: Split remaining coverage tests by topic
+- Problem: ast/coverage_remaining_test.mbt mixed repeat, explode/implode, fromjson, min/max, combinations, comparisons, arithmetic, and setpath coverage.
+- Change: Split into focused coverage files for each topic.
+- Result: Remaining coverage scenarios are grouped by feature without behavior changes.
+- Example:
+Before: ast/coverage_remaining_test.mbt contained all remaining coverage checks together.
+After: coverage_repeat_test.mbt, coverage_explode_implode_test.mbt, coverage_fromjson_test.mbt, coverage_minmax_edges_test.mbt, coverage_combinations_mismatch_test.mbt, coverage_array_comparison_arithmetic_test.mbt, and coverage_setpath_out_of_range_test.mbt separate the cases.
