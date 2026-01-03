@@ -1,9 +1,5 @@
 ///|
-/// Corner case tests for entries and membership
-
-// ============================================================================
-// Map Values and Entries
-// ============================================================================
+/// Corner case tests for entries and map_values
 
 ///|
 test "corner: map_values on object" {
@@ -50,31 +46,4 @@ test "corner: with_entries filters entries" {
     test_query("with_entries(select(.value > 1))", "{\"a\":1,\"b\":2,\"c\":3}"),
     content="Object({\"b\": Number(2), \"c\": Number(3)})",
   )
-}
-
-// ============================================================================
-// Array Search and Membership
-// ============================================================================
-
-///|
-test "corner: indices finds all occurrences" {
-  inspect(
-    test_query("indices(2)", "[1,2,3,2,1]"),
-    content="Array([Number(1), Number(3)])",
-  )
-}
-
-///|
-test "corner: indices with no matches" {
-  inspect(test_query("indices(99)", "[1,2,3]"), content="Array([])")
-}
-
-///|
-test "corner: inside checks array containment" {
-  inspect(test_query("inside([1,2,3,4,5])", "[1,2]"), content="True")
-}
-
-///|
-test "corner: inside with non-subset" {
-  inspect(test_query("inside([1,2,3])", "[1,2,4]"), content="False")
 }

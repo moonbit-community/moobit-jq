@@ -325,3 +325,11 @@ After: conversion cases live in ast/corner_cases_conversion_test.mbt; iteration 
 - Example:
 Before: ast/corner_cases_paths_optional_test.mbt grouped recursion, optional access, and path filters together.
 After: ast/corner_cases_recursive_descent_test.mbt, ast/corner_cases_optional_access_test.mbt, ast/corner_cases_slice_test.mbt, ast/corner_cases_getpath_test.mbt, and ast/corner_cases_paths_filter_test.mbt separate the topics.
+
+## 2026-01-03: Split entries and membership corner cases
+- Problem: ast/corner_cases_entries_search_test.mbt mixed entry transforms with array membership tests.
+- Change: Split into ast/corner_cases_entries_test.mbt and ast/corner_cases_membership_test.mbt.
+- Result: Entry and membership corner cases are separated while preserving coverage.
+- Example:
+Before: ast/corner_cases_entries_search_test.mbt contained map_values and indices/inside tests together.
+After: entry tests live in ast/corner_cases_entries_test.mbt; membership tests live in ast/corner_cases_membership_test.mbt.
