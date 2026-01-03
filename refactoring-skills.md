@@ -597,3 +597,11 @@ After: eval_explode maps iterator; eval_implode builds chars array; eval_scan de
 - Example:
 Before: eval_reduce updated a mut accumulator inside a for loop.
 After: eval_reduce folds the generator iterator with a raise-capable callback.
+
+## 2026-01-03: Bind function params via ArrayView recursion
+- Problem: eval_function_call built arg lists and mutated env in index loops.
+- Change: Mapped args with a raise-capable Array::map and bound params via recursive ArrayView helper.
+- Result: Function call binding is more declarative and avoids mutable env iteration.
+- Example:
+Before: eval_function_call pushed arg_values and mutated env in a for loop.
+After: arg_values uses map + match; bind_params recurses on ArrayView to set bindings.

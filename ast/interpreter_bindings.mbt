@@ -24,24 +24,31 @@ fn eval_function_call(
           "Function \{name} expects \{params.length()} arguments, got \{args.length()}",
         )
       } else {
-        let arg_values : Array[Json] = []
-        for arg in args {
+        let arg_values = args.map(fn(arg) raise InterpreterError {
           let results = eval_with_env(arg, input, env).collect()
-          arg_values.push(
-            if results.is_empty() {
-              null
-            } else {
-              results[0]
-            },
-          )
-        }
-        let mut new_env = env
-        for i = 0; i < params.length(); i = i + 1 {
-          new_env = new_env.set(params[i], arg_values[i])
-        }
+          match results {
+            [] => null
+            [first, .. _] => first
+          }
+        })
+        let new_env = bind_params(env, params[:], arg_values[:])
         eval_with_env(body, input, new_env)
       }
     None => raise EvalError("Undefined function: \{name}")
+  }
+}
+
+///|
+fn bind_params(
+  env : Env,
+  params : ArrayView[String],
+  values : ArrayView[Json],
+) -> Env {
+  match (params, values) {
+    ([], []) => env
+    ([name, .. rest_params], [value, .. rest_values]) =>
+      bind_params(env.set(name, value), rest_params, rest_values)
+    _ => env
   }
 }
 
