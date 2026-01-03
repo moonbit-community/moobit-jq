@@ -1,42 +1,5 @@
 ///|
-/// Corner case tests for conversions and iteration
-
-// ============================================================================
-// String/Array Conversion
-// ============================================================================
-
-///|
-test "corner: explode converts string to codepoints" {
-  inspect(
-    test_query("explode", "\"Hello\""),
-    content="Array([Number(72), Number(101), Number(108), Number(108), Number(111)])",
-  )
-}
-
-///|
-test "corner: implode converts codepoints to string" {
-  inspect(
-    test_query("implode", "[72,101,108,108,111]"),
-    content="String(\"Hello\")",
-  )
-}
-
-///|
-test "corner: explode with unicode" {
-  inspect(
-    test_query("explode", "\"世界\""),
-    content="Array([Number(19990), Number(30028)])",
-  )
-}
-
-///|
-test "corner: implode with unicode codepoints" {
-  inspect(test_query("implode", "[19990,30028]"), content="String(\"世界\")")
-}
-
-// ============================================================================
-// Range and Iteration
-// ============================================================================
+/// Corner case tests for range and iteration
 
 ///|
 test "corner: range with single argument" {
@@ -75,10 +38,6 @@ test "corner: range with zero count" {
   inspect(test_query("[range(0)]", "null"), content="Array([])")
 }
 
-// ============================================================================
-// First and Last
-// ============================================================================
-
 ///|
 test "corner: first from multiple values" {
   inspect(test_query("first(1,2,3,4,5)", "null"), content="Number(1)")
@@ -104,10 +63,6 @@ test "corner: first with empty" {
   inspect(test_query("first(empty)", "null"), content="")
 }
 
-// ============================================================================
-// Repeat
-// ============================================================================
-
 ///|
 test "corner: repeat generates infinite stream (limited)" {
   inspect(
@@ -123,10 +78,6 @@ test "corner: repeat with expression" {
     content="Number(2), Number(2), Number(2), Number(2)",
   )
 }
-
-// ============================================================================
-// Until
-// ============================================================================
 
 ///|
 test "corner: until increments until condition" {

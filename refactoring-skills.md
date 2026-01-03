@@ -309,3 +309,11 @@ After: both use coverage_eval from ast/coverage_eval_helpers_test.mbt.
 - Example:
 Before: ast/corner_cases_misc_test.mbt bundled all corner case topics.
 After: ast/corner_cases_limit_test.mbt, ast/corner_cases_alternative_test.mbt, ast/corner_cases_nested_transform_test.mbt, ast/corner_cases_recursion_test.mbt, ast/corner_cases_interpolation_test.mbt, and ast/corner_cases_error_handling_test.mbt group the cases.
+
+## 2026-01-03: Split conversion and iteration corner cases
+- Problem: ast/corner_cases_conversion_iteration_test.mbt mixed string conversion cases with range/iteration behavior.
+- Change: Split into ast/corner_cases_conversion_test.mbt and ast/corner_cases_iteration_test.mbt.
+- Result: Conversion and iteration edge cases are separated with identical coverage.
+- Example:
+Before: ast/corner_cases_conversion_iteration_test.mbt housed explode/implode and range/repeat/until in one file.
+After: conversion cases live in ast/corner_cases_conversion_test.mbt; iteration cases live in ast/corner_cases_iteration_test.mbt.
