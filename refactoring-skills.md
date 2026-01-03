@@ -245,3 +245,11 @@ After: sequence and index helpers live in dedicated files.
 - Example:
 Before: ast/interpreter_assignment.mbt contained eval_update, eval_assign, and compound helpers together.
 After: assignment update/basic/compound helpers live in dedicated files.
+
+## 2026-01-03: Split encoding helpers by format
+- Problem: ast/interpreter_encoding.mbt grouped URI, HTML, and base64 helpers in one file.
+- Change: Split into ast/interpreter_encoding_uri.mbt, ast/interpreter_encoding_html.mbt, and ast/interpreter_encoding_base64.mbt.
+- Result: Encoding helpers are organized by format with no behavior change.
+- Example:
+Before: ast/interpreter_encoding.mbt contained uri_encode, html_escape, and base64 helpers together.
+After: encoding helpers live in dedicated uri/html/base64 files.
