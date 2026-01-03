@@ -213,3 +213,11 @@ After: string built-ins are routed through focused helper files.
 - Example:
 Before: parser/parser_precedence.mbt defined parse_pipe through parse_unary in one file.
 After: each precedence tier lives in a focused parser file.
+
+## 2026-01-03: Split numeric helpers by role
+- Problem: ast/interpreter_numeric.mbt mixed basic ops, rounding, and math functions.
+- Change: Split into ast/interpreter_numeric_basic.mbt, ast/interpreter_numeric_round.mbt, and ast/interpreter_numeric_math.mbt.
+- Result: Numeric helpers are grouped by concern with smaller files.
+- Example:
+Before: ast/interpreter_numeric.mbt held add/min/max, round/ceil/abs, and trig/exp helpers together.
+After: numeric helpers live in dedicated basic/round/math files.
