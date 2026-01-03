@@ -181,3 +181,11 @@ After: string core, trim/case, and scan helpers live in dedicated files.
 - Example:
 Before: ast/interpreter_generators.mbt contained range, any/all, first/last, repeat, and foreach logic together.
 After: generator helpers live in dedicated range/stream/predicate/foreach files.
+
+## 2026-01-03: Split parser flow built-ins by theme
+- Problem: parser/parser_builtin_flow.mbt grouped range, predicates, control flow, reduce/foreach, and traversal parsing.
+- Change: Split into parser/parser_builtin_flow_range.mbt, parser/parser_builtin_flow_predicates.mbt, parser/parser_builtin_flow_control.mbt, parser/parser_builtin_flow_reduce.mbt, and parser/parser_builtin_flow_traversal.mbt.
+- Result: Flow built-in parsing is modular and easier to extend.
+- Example:
+Before: parser/parser_builtin_flow.mbt matched all flow built-ins in one file.
+After: parser flow built-ins are routed through focused helper files.
