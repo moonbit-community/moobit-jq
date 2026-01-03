@@ -205,3 +205,11 @@ After: collection helpers live in dedicated object/order/matrix files.
 - Example:
 Before: parser/parser_builtin_string.mbt handled all string built-ins in one match.
 After: string built-ins are routed through focused helper files.
+
+## 2026-01-03: Split parser precedence parsing
+- Problem: parser/parser_precedence.mbt contained every precedence layer in one file.
+- Change: Split into parser/parser_parse_pipe.mbt, parser/parser_parse_assignment.mbt, parser/parser_parse_logic.mbt, and parser/parser_parse_arithmetic.mbt.
+- Result: Precedence parsing stays modular and easier to navigate.
+- Example:
+Before: parser/parser_precedence.mbt defined parse_pipe through parse_unary in one file.
+After: each precedence tier lives in a focused parser file.
