@@ -21,3 +21,11 @@ After: ast/test_helpers_test.mbt holds test_query; tests live in ast/comprehensi
 - Example:
 Before: ast/interpreter.mbt held Key/Index/Slice/Optional and construct/operation logic inline.
 After: ast/interpreter_access.mbt, ast/interpreter_construct.mbt, and ast/interpreter_operation.mbt contain those helpers.
+
+## 2026-01-03: Extract array builtins into helpers
+- Problem: Map/select/sort/flatten/unique logic cluttered the main evaluator dispatch.
+- Change: Moved array builtins into ast/interpreter_array_functions.mbt and routed through helper functions.
+- Result: Interpreter case arms are shorter while preserving behavior.
+- Example:
+Before: ast/interpreter.mbt contained Map/Select/Sort/Reverse/Flatten/Unique bodies inline.
+After: ast/interpreter_array_functions.mbt owns those implementations.

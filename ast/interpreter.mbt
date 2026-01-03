@@ -108,88 +108,12 @@ fn eval_with_env(
     Not => Iterator::singleton(Json::boolean(not(is_truthy(input))))
 
     // Array functions
-    Map(inner) =>
-      match input {
-        Array(arr) => {
-          let results : Array[Json] = []
-          for elem in arr {
-            let mapped = eval_with_env(inner, elem, env).collect()
-            for v in mapped {
-              results.push(v)
-            }
-          }
-          Iterator::singleton(Json::array(results))
-        }
-        _ => raise TypeMismatch("array", json_type_name(input))
-      }
-    Select(condition) => {
-      let cond_results = eval_with_env(condition, input, env).collect()
-      if cond_results.is_empty() {
-        Iterator::empty()
-      } else {
-        let truthy = is_truthy(cond_results[0])
-        if truthy {
-          Iterator::singleton(input)
-        } else {
-          Iterator::empty()
-        }
-      }
-    }
-    Sort =>
-      match input {
-        Array(arr) => {
-          let sorted = arr.copy()
-          sorted.sort_by(compare_json)
-          Iterator::singleton(Json::array(sorted))
-        }
-        _ => raise TypeMismatch("array", json_type_name(input))
-      }
-    Reverse =>
-      match input {
-        Array(arr) => {
-          let reversed : Array[Json] = []
-          for i = arr.length() - 1; i >= 0; i = i - 1 {
-            reversed.push(arr[i])
-          }
-          Iterator::singleton(Json::array(reversed))
-        }
-        _ => raise TypeMismatch("array", json_type_name(input))
-      }
-    Flatten(depth_opt) =>
-      match input {
-        Array(arr) => {
-          let depth = match depth_opt {
-            Some(d) => d
-            None => 999999 // Flatten all levels
-          }
-          Iterator::singleton(Json::array(flatten_array(arr, depth)))
-        }
-        _ => raise TypeMismatch("array", json_type_name(input))
-      }
-    Unique =>
-      match input {
-        Array(arr) => {
-          let sorted = arr.copy()
-          sorted.sort_by(compare_json)
-          let unique : Array[Json] = []
-          let mut prev : Json? = None
-          for elem in sorted {
-            match prev {
-              None => {
-                unique.push(elem)
-                prev = Some(elem)
-              }
-              Some(p) =>
-                if compare_json(p, elem) != 0 {
-                  unique.push(elem)
-                  prev = Some(elem)
-                }
-            }
-          }
-          Iterator::singleton(Json::array(unique))
-        }
-        _ => raise TypeMismatch("array", json_type_name(input))
-      }
+    Map(inner) => eval_map(inner, input, env)
+    Select(condition) => eval_select(condition, input, env)
+    Sort => eval_sort(input)
+    Reverse => eval_reverse(input)
+    Flatten(depth_opt) => eval_flatten(depth_opt, input)
+    Unique => eval_unique(input)
 
     // Numeric functions
     Add =>
