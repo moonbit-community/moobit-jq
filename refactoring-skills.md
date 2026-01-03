@@ -646,6 +646,14 @@ After: parse_additive uses loop initial_expr { expr => match ... continue ... }.
 Before: lex_number used `let mut has_dot`; lex_string used `let mut paren_depth`.
 After: both use loop state with `continue` to update.
 
+## 2026-01-03: Replace lexer while loops with loop state
+- Problem: lexing functions relied on `while true` loops with breaks.
+- Change: Converted `lex`, `skip_whitespace`, `skip_comment`, and string scanning to loop-state expressions.
+- Result: Lexer control flow is more functional and explicit without changing behavior.
+- Example:
+Before: lex and skip_whitespace used while/break.
+After: they use `loop () { ... continue () }` with match branches returning unit.
+
 ## 2026-01-03: Use Ref state for repeat iterator
 - Problem: eval_repeat used a mutable index in an iterator closure.
 - Change: Switched to Ref[Int] to hold iterator state without a `let mut`.

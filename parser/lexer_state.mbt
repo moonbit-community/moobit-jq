@@ -47,21 +47,29 @@ fn Lexer::add_token(self : Lexer, token : Token) -> Unit {
 ///|
 /// Skip whitespace
 fn Lexer::skip_whitespace(self : Lexer) -> Unit {
-  while true {
-    match self.current() {
-      Some(' ') | Some('\n') | Some('\r') | Some('\t') => self.advance()
-      _ => break
-    }
+  let _ = loop () {
+    _ =>
+      match self.current() {
+        Some(' ') | Some('\n') | Some('\r') | Some('\t') => {
+          self.advance()
+          continue ()
+        }
+        _ => ()
+      }
   }
 }
 
 ///|
 /// Skip comment (# to end of line)
 fn Lexer::skip_comment(self : Lexer) -> Unit {
-  while true {
-    match self.current() {
-      Some('\n') | None => break
-      _ => self.advance()
-    }
+  let _ = loop () {
+    _ =>
+      match self.current() {
+        Some('\n') | None => ()
+        _ => {
+          self.advance()
+          continue ()
+        }
+      }
   }
 }
