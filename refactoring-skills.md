@@ -485,3 +485,11 @@ After: array_contains_view/array_contains_all use `match` on ArrayView (includin
 - Example:
 Before: eval_add/eval_min/eval_max and eval_min_by/eval_max_by used mutable accumulators and index loops.
 After: sum_numbers/min_in_view/max_in_view and pick_min_by/pick_max_by use nested pattern matches and recursion.
+
+## 2026-01-03: Make binary ops and matrix helpers more functional
+- Problem: binary ops used mutable accumulators for array subtraction and string repetition, and matrix helpers used nested loops.
+- Change: Added recursive ArrayView helpers with pattern matching for subtraction, repetition, cartesian products, and transpose columns.
+- Result: More declarative control flow with reduced mutation and the same behavior.
+- Example:
+Before: json_subtract used nested loops and mutable flags; eval_combinations built results with mutable arrays.
+After: array_without/cartesian_product/build_columns use recursive pattern matching to build results.
