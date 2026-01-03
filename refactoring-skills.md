@@ -173,3 +173,11 @@ After: enumeration/access/mutation helpers live in separate path-focused files.
 - Example:
 Before: ast/interpreter_string_ops.mbt contained split/join, trim/case, and scan/explode/implode together.
 After: string core, trim/case, and scan helpers live in dedicated files.
+
+## 2026-01-03: Split generator helpers by role
+- Problem: ast/interpreter_generators.mbt mixed range, stream, predicate, and foreach helpers.
+- Change: Split into ast/interpreter_generator_range.mbt, ast/interpreter_generator_stream.mbt, ast/interpreter_generator_predicates.mbt, and ast/interpreter_generator_foreach.mbt.
+- Result: Generator helpers are grouped by responsibility with smaller files.
+- Example:
+Before: ast/interpreter_generators.mbt contained range, any/all, first/last, repeat, and foreach logic together.
+After: generator helpers live in dedicated range/stream/predicate/foreach files.
