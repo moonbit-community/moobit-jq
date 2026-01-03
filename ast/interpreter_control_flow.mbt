@@ -74,24 +74,23 @@ fn eval_until(
   input : Json,
   env : Env,
 ) -> Iterator[Json] raise InterpreterError {
-  let mut current = input
-  while true {
-    let cond_results = eval_with_env(cond_expr, current, env).collect()
-    if cond_results.is_empty() {
-      break
-    }
-    match cond_results[0] {
-      True => break
-      _ => {
-        let update_results = eval_with_env(update_expr, current, env).collect()
-        if update_results.is_empty() {
-          break
+  let result = loop input {
+    current => {
+      let cond_results = eval_with_env(cond_expr, current, env).collect()
+      match cond_results {
+        [] => current
+        [True, .. _] => current
+        _ => {
+          let update_results = eval_with_env(update_expr, current, env).collect()
+          match update_results {
+            [] => current
+            [next, .. _] => continue next
+          }
         }
-        current = update_results[0]
       }
     }
   }
-  Iterator::singleton(current)
+  Iterator::singleton(result)
 }
 
 ///|
@@ -102,22 +101,23 @@ fn eval_while(
   input : Json,
   env : Env,
 ) -> Iterator[Json] raise InterpreterError {
-  let results : Array[Json] = []
-  let mut current = input
-  while true {
-    let cond_results = eval_with_env(cond_expr, current, env).collect()
-    if cond_results.is_empty() {
-      break
-    }
-    if not(is_truthy(cond_results[0])) {
-      break
-    } else {
-      results.push(current)
-      let update_results = eval_with_env(update_expr, current, env).collect()
-      if update_results.is_empty() {
-        break
+  let results : Array[Json] = loop (input, []) {
+    (current, results) => {
+      let cond_results = eval_with_env(cond_expr, current, env).collect()
+      match cond_results {
+        [] => results
+        [first, .. _] =>
+          if not(is_truthy(first)) {
+            results
+          } else {
+            results.push(current)
+            let update_results = eval_with_env(update_expr, current, env).collect()
+            match update_results {
+              [] => results
+              [next, .. _] => continue (next, results)
+            }
+          }
       }
-      current = update_results[0]
     }
   }
   results.iterator()

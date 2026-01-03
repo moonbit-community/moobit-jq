@@ -613,3 +613,11 @@ After: arg_values uses map + match; bind_params recurses on ArrayView to set bin
 - Example:
 Before: eval_foreach updated a mut accumulator and pushed results in a for loop.
 After: eval_foreach folds gen_results and returns the collected outputs.
+
+## 2026-01-03: Use loop state for control flow
+- Problem: eval_until/eval_while used mutable current state and while loops.
+- Change: Switched to functional loop expressions with pattern matching over results and continue state.
+- Result: Control flow is more declarative while keeping behavior unchanged.
+- Example:
+Before: eval_until/eval_while mutated current inside while true.
+After: eval_until uses loop current; eval_while loops over (current, results) state.
