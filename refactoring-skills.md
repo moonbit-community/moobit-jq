@@ -645,3 +645,11 @@ After: parse_additive uses loop initial_expr { expr => match ... continue ... }.
 - Example:
 Before: lex_number used `let mut has_dot`; lex_string used `let mut paren_depth`.
 After: both use loop state with `continue` to update.
+
+## 2026-01-03: Use Ref state for repeat iterator
+- Problem: eval_repeat used a mutable index in an iterator closure.
+- Change: Switched to Ref[Int] to hold iterator state without a `let mut`.
+- Result: The repeat iterator keeps state explicit while removing mutable locals.
+- Example:
+Before: eval_repeat updated `let mut i` inside the closure.
+After: eval_repeat updates `idx.val` on a Ref[Int].

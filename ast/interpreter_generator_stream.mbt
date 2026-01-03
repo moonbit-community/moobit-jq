@@ -36,13 +36,11 @@ fn eval_repeat(
   if values.is_empty() {
     return Iterator::empty()
   }
-  let mut i = 0
+  let idx : Ref[Int] = Ref::new(0)
   Iterator::new(fn() {
+    let i = idx.val
     let result = Some(values[i])
-    i += 1
-    if i >= values.length() {
-      i = 0
-    }
+    idx.val = if i + 1 >= values.length() { 0 } else { i + 1 }
     result
   })
 }
