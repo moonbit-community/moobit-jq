@@ -397,3 +397,11 @@ After: field, array, and optional/variable access tests live in dedicated files.
 - Example:
 Before: parser/parse_literals_test.mbt included identity and literal cases together.
 After: identity parsing lives in parser/parse_identity_test.mbt; literals live in parser/parse_literal_test.mbt.
+
+## 2026-01-03: Split parser builtins tests
+- Problem: parser/parse_builtins_test.mbt mixed basic and array built-in parsing.
+- Change: Split into parser/parse_builtins_basic_test.mbt and parser/parse_builtins_array_test.mbt.
+- Result: Built-in parsing tests are grouped by category with no behavior change.
+- Example:
+Before: parser/parse_builtins_test.mbt contained length/keys/type alongside map/select/sort/flatten.
+After: basic builtins live in parser/parse_builtins_basic_test.mbt; array builtins live in parser/parse_builtins_array_test.mbt.
