@@ -14,30 +14,34 @@ fn eval_foreach(
   if init_results.is_empty() {
     return Iterator::empty()
   }
-  let mut accumulator = init_results[0]
-  let results : Array[Json] = []
-  for gen_result in gen_results {
-    let base_env : Env = {
-      bindings: env.bindings.copy(),
-      functions: env.functions.copy(),
-    }
-    let new_env = base_env.set(var_name, gen_result)
-    let update_results = eval_with_env(update_expr, accumulator, new_env).collect()
-    if not(update_results.is_empty()) {
-      accumulator = update_results[0]
-      let output = match extract_expr {
-        Some(extract) => {
-          let extract_results = eval_with_env(extract, accumulator, new_env).collect()
-          if extract_results.is_empty() {
-            accumulator
-          } else {
-            extract_results[0]
-          }
-        }
-        None => accumulator
-      }
-      results.push(output)
-    }
+  let base_env : Env = {
+    bindings: env.bindings.copy(),
+    functions: env.functions.copy(),
   }
+  let (_acc, results) : (Json, Array[Json]) = gen_results.fold(
+    init=(init_results[0], []),
+    fn(state, gen_result) raise InterpreterError {
+      let (acc, results) = state
+      let new_env = base_env.set(var_name, gen_result)
+      let update_results = eval_with_env(update_expr, acc, new_env).collect()
+      match update_results {
+        [] => (acc, results)
+        [next, .. _] => {
+          let output = match extract_expr {
+            Some(extract) => {
+              let extract_results = eval_with_env(extract, next, new_env).collect()
+              match extract_results {
+                [] => next
+                [first, .. _] => first
+              }
+            }
+            None => next
+          }
+          results.push(output)
+          (next, results)
+        }
+      }
+    },
+  )
   results.iterator()
 }

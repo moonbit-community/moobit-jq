@@ -605,3 +605,11 @@ After: eval_reduce folds the generator iterator with a raise-capable callback.
 - Example:
 Before: eval_function_call pushed arg_values and mutated env in a for loop.
 After: arg_values uses map + match; bind_params recurses on ArrayView to set bindings.
+
+## 2026-01-03: Fold foreach accumulation state
+- Problem: eval_foreach used a mutable accumulator and per-iteration env setup.
+- Change: Moved to Array::fold with (acc, results) state and a base env copy, using pattern matching for updates.
+- Result: Foreach remains sequential but avoids explicit mutation in the loop body.
+- Example:
+Before: eval_foreach updated a mut accumulator and pushed results in a for loop.
+After: eval_foreach folds gen_results and returns the collected outputs.
