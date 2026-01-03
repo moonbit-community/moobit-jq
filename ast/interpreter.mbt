@@ -116,62 +116,11 @@ fn eval_with_env(
     Unique => eval_unique(input)
 
     // Numeric functions
-    Add =>
-      match input {
-        Array(arr) => {
-          let mut sum = 0.0
-          for elem in arr {
-            match elem {
-              Number(n, ..) => sum = sum + n
-              _ => ()
-            }
-          }
-          Iterator::singleton(Json::number(sum))
-        }
-        _ => raise TypeMismatch("array", json_type_name(input))
-      }
-    Floor =>
-      match input {
-        Number(n, ..) => Iterator::singleton(Json::number(n.floor()))
-        _ => raise TypeMismatch("number", json_type_name(input))
-      }
-    Sqrt =>
-      match input {
-        Number(n, ..) => Iterator::singleton(Json::number(n.sqrt()))
-        _ => raise TypeMismatch("number", json_type_name(input))
-      }
-    Min =>
-      match input {
-        Array(arr) =>
-          if arr.is_empty() {
-            Iterator::singleton(null)
-          } else {
-            let mut min_val = arr[0]
-            for elem in arr {
-              if compare_json(elem, min_val) < 0 {
-                min_val = elem
-              }
-            }
-            Iterator::singleton(min_val)
-          }
-        _ => raise TypeMismatch("array", json_type_name(input))
-      }
-    Max =>
-      match input {
-        Array(arr) =>
-          if arr.is_empty() {
-            Iterator::singleton(null)
-          } else {
-            let mut max_val = arr[0]
-            for elem in arr {
-              if compare_json(elem, max_val) > 0 {
-                max_val = elem
-              }
-            }
-            Iterator::singleton(max_val)
-          }
-        _ => raise TypeMismatch("array", json_type_name(input))
-      }
+    Add => eval_add(input)
+    Floor => eval_floor(input)
+    Sqrt => eval_sqrt(input)
+    Min => eval_min(input)
+    Max => eval_max(input)
 
     // Control flow
     IfThenElse(cond, then_expr, else_expr) => {
@@ -601,21 +550,9 @@ fn eval_with_env(
       Iterator::singleton(Json::array([]))
 
     // Additional numeric functions
-    Round =>
-      match input {
-        Number(n, ..) => Iterator::singleton(Json::number(n.round()))
-        _ => raise TypeMismatch("number", json_type_name(input))
-      }
-    Ceil =>
-      match input {
-        Number(n, ..) => Iterator::singleton(Json::number(n.ceil()))
-        _ => raise TypeMismatch("number", json_type_name(input))
-      }
-    Abs =>
-      match input {
-        Number(n, ..) => Iterator::singleton(Json::number(n.abs()))
-        _ => raise TypeMismatch("number", json_type_name(input))
-      }
+    Round => eval_round(input)
+    Ceil => eval_ceil(input)
+    Abs => eval_abs(input)
 
     // String operations
     Split(sep) =>
@@ -1220,57 +1157,15 @@ fn eval_with_env(
     }
 
     // Math functions
-    Pow(exp_expr) => {
-      let exp_results = eval_with_env(exp_expr, input, env).collect()
-      if exp_results.is_empty() {
-        return Iterator::singleton(null)
-      }
-      match (input, exp_results[0]) {
-        (Number(base, ..), Number(exp, ..)) =>
-          Iterator::singleton(Json::number(@math.pow(base, exp)))
-        _ => raise TypeMismatch("number", json_type_name(input))
-      }
-    }
-    Log =>
-      match input {
-        Number(n, ..) => Iterator::singleton(Json::number(@math.ln(n)))
-        _ => raise TypeMismatch("number", json_type_name(input))
-      }
-    Exp =>
-      match input {
-        Number(n, ..) => Iterator::singleton(Json::number(@math.exp(n)))
-        _ => raise TypeMismatch("number", json_type_name(input))
-      }
-    Sin =>
-      match input {
-        Number(n, ..) => Iterator::singleton(Json::number(@math.sin(n)))
-        _ => raise TypeMismatch("number", json_type_name(input))
-      }
-    Cos =>
-      match input {
-        Number(n, ..) => Iterator::singleton(Json::number(@math.cos(n)))
-        _ => raise TypeMismatch("number", json_type_name(input))
-      }
-    Tan =>
-      match input {
-        Number(n, ..) => Iterator::singleton(Json::number(@math.tan(n)))
-        _ => raise TypeMismatch("number", json_type_name(input))
-      }
-    Asin =>
-      match input {
-        Number(n, ..) => Iterator::singleton(Json::number(@math.asin(n)))
-        _ => raise TypeMismatch("number", json_type_name(input))
-      }
-    Acos =>
-      match input {
-        Number(n, ..) => Iterator::singleton(Json::number(@math.acos(n)))
-        _ => raise TypeMismatch("number", json_type_name(input))
-      }
-    Atan =>
-      match input {
-        Number(n, ..) => Iterator::singleton(Json::number(@math.atan(n)))
-        _ => raise TypeMismatch("number", json_type_name(input))
-      }
+    Pow(exp_expr) => eval_pow(exp_expr, input, env)
+    Log => eval_log(input)
+    Exp => eval_exp(input)
+    Sin => eval_sin(input)
+    Cos => eval_cos(input)
+    Tan => eval_tan(input)
+    Asin => eval_asin(input)
+    Acos => eval_acos(input)
+    Atan => eval_atan(input)
 
     // Regex functions (simple implementations)
     Test(pattern) =>

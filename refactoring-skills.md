@@ -29,3 +29,11 @@ After: ast/interpreter_access.mbt, ast/interpreter_construct.mbt, and ast/interp
 - Example:
 Before: ast/interpreter.mbt contained Map/Select/Sort/Reverse/Flatten/Unique bodies inline.
 After: ast/interpreter_array_functions.mbt owns those implementations.
+
+## 2026-01-03: Extract numeric and math evaluators
+- Problem: Numeric/math cases were spread across the evaluator, making it harder to scan.
+- Change: Consolidated number helpers into ast/interpreter_numeric.mbt.
+- Result: Numeric and math dispatch reads cleaner with no behavior changes.
+- Example:
+Before: ast/interpreter.mbt contained Add/Floor/Sqrt/Min/Max, Round/Ceil/Abs, and Pow/Log/Exp/Sin/Cos/Tan/Asin/Acos/Atan inline.
+After: ast/interpreter_numeric.mbt provides eval_* helpers for those cases.
