@@ -301,3 +301,11 @@ After: parser/lexer_symbol.mbt hosts lex_symbol with the same cases.
 - Example:
 Before: ast/coverage_extensive_test.mbt defined cov_eval2 and ast/regex_coverage_test.mbt defined regex_eval.
 After: both use coverage_eval from ast/coverage_eval_helpers_test.mbt.
+
+## 2026-01-03: Split corner case misc tests by topic
+- Problem: ast/corner_cases_misc_test.mbt mixed limit, alternatives, nested transforms, recursion, interpolation, and error handling in one file.
+- Change: Split into focused corner case test files by theme.
+- Result: Corner case tests are easier to locate without changing coverage.
+- Example:
+Before: ast/corner_cases_misc_test.mbt bundled all corner case topics.
+After: ast/corner_cases_limit_test.mbt, ast/corner_cases_alternative_test.mbt, ast/corner_cases_nested_transform_test.mbt, ast/corner_cases_recursion_test.mbt, ast/corner_cases_interpolation_test.mbt, and ast/corner_cases_error_handling_test.mbt group the cases.
