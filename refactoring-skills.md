@@ -413,3 +413,11 @@ After: basic builtins live in parser/parse_builtins_basic_test.mbt; array builti
 - Example:
 Before: parser/parse_complex_errors_test.mbt held both complex filter and error snapshots.
 After: complex filter lives in parser/parse_complex_filter_test.mbt; error cases live in parser/parse_error_cases_test.mbt.
+
+## 2026-01-03: Split lexing complex tests by theme
+- Problem: parser/lex_complex_test.mbt mixed comment/whitespace, pipelines, constructs, control flow, and bindings.
+- Change: Split into parser/lex_comment_whitespace_test.mbt, parser/lex_pipeline_test.mbt, parser/lex_constructs_test.mbt, parser/lex_control_flow_test.mbt, and parser/lex_binding_test.mbt.
+- Result: Lexing tests are grouped by concern with no behavior changes.
+- Example:
+Before: parser/lex_complex_test.mbt contained all complex lexing snapshots.
+After: each lexing topic lives in its own test file.
