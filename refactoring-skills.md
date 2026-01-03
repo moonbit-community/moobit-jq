@@ -117,3 +117,11 @@ After: ast/interpreter_builtins.mbt hosts eval_* helpers for those cases.
 - Example:
 Before: ast/interpreter.mbt handled Variable, FunctionCall, and As inline.
 After: ast/interpreter_bindings.mbt provides eval_* helpers for binding cases.
+
+## 2026-01-03: Extract aggregate helpers
+- Problem: Reduce/SortBy/GroupBy and array predicates were embedded in the evaluator.
+- Change: Moved Reduce/SortBy/GroupBy/Any/All into ast/interpreter_aggregates.mbt.
+- Result: Aggregation logic is grouped and easier to scan.
+- Example:
+Before: ast/interpreter.mbt implemented Reduce/SortBy/GroupBy/Any/All inline.
+After: ast/interpreter_aggregates.mbt hosts eval_* helpers for those cases.

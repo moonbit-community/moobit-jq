@@ -157,73 +157,14 @@ fn eval_with_env(
     As(expr, var_name, body) => eval_as(expr, var_name, body, input, env)
 
     // Reduce: aggregate using accumulator
-    Reduce(expr, var_name, init_expr, update_expr) => {
-      // Evaluate init expression to get initial accumulator
-      let init_results = eval_with_env(init_expr, input, env).collect()
-      if init_results.is_empty() {
-        return Iterator::singleton(null)
-      }
-      let mut accumulator = init_results[0]
-
-      // Iterate over expr results and update accumulator
-      for item in eval_with_env(expr, input, env) {
-        let new_env = env.set(var_name, item)
-        let update_results = eval_with_env(update_expr, accumulator, new_env).collect()
-        if not(update_results.is_empty()) {
-          accumulator = update_results[0]
-        }
-      }
-      Iterator::singleton(accumulator)
-    }
+    Reduce(expr, var_name, init_expr, update_expr) =>
+      eval_reduce(expr, var_name, init_expr, update_expr, input, env)
 
     // SortBy: sort array by expression result
-    SortBy(expr) =>
-      match input {
-        Array(arr) => {
-          // Create array of (value, sort_key) pairs
-          let pairs : Array[(Json, Json)] = []
-          for elem in arr {
-            let keys = eval_with_env(expr, elem, env).collect()
-            let sort_key = if keys.is_empty() { null } else { keys[0] }
-            pairs.push((elem, sort_key))
-          }
-          // Sort by the key
-          let sorted_pairs = pairs.copy()
-          sorted_pairs.sort_by(fn(a, b) { compare_json(a.1, b.1) })
-          // Extract values
-          let sorted = sorted_pairs.map(fn(p) { p.0 })
-          Iterator::singleton(Json::array(sorted))
-        }
-        _ => raise TypeMismatch("array", json_type_name(input))
-      }
+    SortBy(expr) => eval_sort_by(expr, input, env)
 
     // GroupBy: group array elements by expression result
-    GroupBy(expr) =>
-      match input {
-        Array(arr) => {
-          // Create groups: Map[String, Array[Json]]
-          let groups : Map[String, Array[Json]] = {}
-          for elem in arr {
-            let keys = eval_with_env(expr, elem, env).collect()
-            let key_json = if keys.is_empty() { null } else { keys[0] }
-            let key_str = key_json.to_string()
-            match groups.get(key_str) {
-              Some(existing) => {
-                existing.push(elem)
-                groups[key_str] = existing
-              }
-              None => groups[key_str] = [elem]
-            }
-          }
-          // Convert groups to array of arrays
-          let result : Array[Json] = []
-          for group in groups.values() {
-            result.push(Json::array(group))
-          }
-          Iterator::singleton(Json::array(result))
-        }
-        _ => raise TypeMismatch("array", json_type_name(input))
-      }
+    GroupBy(expr) => eval_group_by(expr, input, env)
 
     // Update operator: modify value in place
     Update(path, update_expr) => eval_update(path, update_expr, input, env)
@@ -268,34 +209,8 @@ fn eval_with_env(
     IndexOf(expr) => eval_index_of(expr, input, env)
 
     // Predicates
-    Any =>
-      match input {
-        Array(arr) => {
-          let mut result = false
-          for elem in arr {
-            if is_truthy(elem) {
-              result = true
-              break
-            }
-          }
-          Iterator::singleton(Json::boolean(result))
-        }
-        _ => raise TypeMismatch("array", json_type_name(input))
-      }
-    All =>
-      match input {
-        Array(arr) => {
-          let mut result = true
-          for elem in arr {
-            if not(is_truthy(elem)) {
-              result = false
-              break
-            }
-          }
-          Iterator::singleton(Json::boolean(result))
-        }
-        _ => raise TypeMismatch("array", json_type_name(input))
-      }
+    Any => eval_any(input)
+    All => eval_all(input)
 
     // String trimming
     LTrimStr(prefix) => eval_ltrim_str(prefix, input)
