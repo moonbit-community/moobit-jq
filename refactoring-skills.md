@@ -133,3 +133,11 @@ After: ast/interpreter_aggregates.mbt hosts eval_* helpers for those cases.
 - Example:
 Before: ast/interpreter.mbt inlined Update(Operation(...)) for each compound assignment.
 After: ast/interpreter_assignment.mbt provides shared helpers for compound assignment cases.
+
+## 2026-01-03: Split extra feature helpers into focused modules
+- Problem: ast/interpreter_extras.mbt grew into a mixed bag of generators, collections, and string/JSON utilities.
+- Change: Split generator helpers into ast/interpreter_generators.mbt, collection helpers into ast/interpreter_collection_extras.mbt, JSON string helpers into ast/interpreter_json_string.mbt, and moved scan/explode/implode and paths_with_filter into string/path modules.
+- Result: Extra features are organized by responsibility, and the monolithic extras file is removed.
+- Example:
+Before: ast/interpreter_extras.mbt contained MapValues, RangeWithStep, Foreach, Scan, and conversions.
+After: those helpers live in dedicated generator/collection/string/json/path files.

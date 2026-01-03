@@ -273,6 +273,18 @@ fn eval_del_paths(
 }
 
 ///|
+/// Evaluate PathsWithFilter
+fn eval_paths_with_filter(
+  filter_expr : Expr,
+  input : Json,
+  env : Env,
+) -> Iterator[Json] raise InterpreterError {
+  let results : Array[Array[String]] = []
+  collect_paths_with_filter(input, [], filter_expr, env, results)
+  results.iterator().map(path => Json::array(path.map(Json::string)))
+}
+
+///|
 /// Evaluate Path (placeholder)
 fn eval_path(_expr : Expr) -> Iterator[Json] {
   Iterator::singleton(Json::array([]))
