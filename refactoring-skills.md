@@ -229,3 +229,11 @@ After: numeric helpers live in dedicated basic/round/math files.
 - Example:
 Before: ast/interpreter_json_ops.mbt contained eval_literal, eval_binary_op, and compare_json together.
 After: literal, binary, and compare helpers live in dedicated files.
+
+## 2026-01-03: Split iteration helpers by role
+- Problem: ast/interpreter_iteration.mbt mixed sequence iteration and index lookups.
+- Change: Split into ast/interpreter_iteration_sequence.mbt and ast/interpreter_iteration_index.mbt.
+- Result: Iteration helpers are grouped by concern with smaller files.
+- Example:
+Before: ast/interpreter_iteration.mbt handled range/first/last with index helpers in one file.
+After: sequence and index helpers live in dedicated files.
