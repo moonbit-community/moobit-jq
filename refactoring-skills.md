@@ -197,3 +197,11 @@ After: parser flow built-ins are routed through focused helper files.
 - Example:
 Before: ast/interpreter_collection_extras.mbt contained MapValues, UniqueBy/MinBy/MaxBy, and Combinations/Transpose together.
 After: collection helpers live in dedicated object/order/matrix files.
+
+## 2026-01-03: Split parser string built-ins
+- Problem: parser/parser_builtin_string.mbt grouped core ops, trim/case, codec, and regex parsing.
+- Change: Split into parser/parser_builtin_string_core.mbt, parser/parser_builtin_string_trim.mbt, parser/parser_builtin_string_codec.mbt, and parser/parser_builtin_string_regex.mbt.
+- Result: String built-in parsing is modular and easier to extend.
+- Example:
+Before: parser/parser_builtin_string.mbt handled all string built-ins in one match.
+After: string built-ins are routed through focused helper files.
