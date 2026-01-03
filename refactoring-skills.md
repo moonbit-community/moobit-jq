@@ -437,3 +437,11 @@ After: coverage_comparisons_test.mbt, coverage_membership_test.mbt, coverage_upd
 - Example:
 Before: ast/coverage_error_branches_test.mbt held all error-branch coverage scenarios.
 After: coverage_error_control_flow_test.mbt, coverage_format_string_mismatch_test.mbt, coverage_update_walk_recurse_test.mbt, coverage_numeric_range_test.mbt, coverage_index_ordering_iter_test.mbt, and coverage_entries_edge_test.mbt separate the cases.
+
+## 2026-01-03: Split type mismatch coverage tests
+- Problem: ast/coverage_type_mismatch_test.mbt mixed iterator, object construction, and builtin mismatch coverage.
+- Change: Split into ast/coverage_iterator_object_edges_test.mbt, ast/coverage_length_keys_values_test.mbt, ast/coverage_array_builtin_mismatch_test.mbt, and ast/coverage_numeric_builtin_mismatch_test.mbt.
+- Result: Coverage cases are grouped by feature without changing behavior.
+- Example:
+Before: ast/coverage_type_mismatch_test.mbt held iterator, object, and builtin mismatch checks together.
+After: iterator/object edges, length/keys/values, array builtins, and numeric mismatches live in dedicated files.
