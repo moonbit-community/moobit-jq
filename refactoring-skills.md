@@ -589,3 +589,11 @@ After: Env::set/Env::set_function call copy(); eval_foreach builds Env from copi
 - Example:
 Before: eval_explode/implode used loop+buffer; eval_scan used a while loop with mut index.
 After: eval_explode maps iterator; eval_implode builds chars array; eval_scan delegates to scan_matches recursion.
+
+## 2026-01-03: Fold reduce accumulator without mutation
+- Problem: eval_reduce used a mutable accumulator updated in a loop.
+- Change: Switched to Iterator::fold with pattern matching on update results.
+- Result: Reduce is expressed as a fold without explicit mutation.
+- Example:
+Before: eval_reduce updated a mut accumulator inside a for loop.
+After: eval_reduce folds the generator iterator with a raise-capable callback.

@@ -9,18 +9,23 @@ fn eval_reduce(
   env : Env,
 ) -> Iterator[Json] raise InterpreterError {
   let init_results = eval_with_env(init_expr, input, env).collect()
-  if init_results.is_empty() {
-    return Iterator::singleton(null)
-  }
-  let mut accumulator = init_results[0]
-  for item in eval_with_env(expr, input, env) {
-    let new_env = env.set(var_name, item)
-    let update_results = eval_with_env(update_expr, accumulator, new_env).collect()
-    if not(update_results.is_empty()) {
-      accumulator = update_results[0]
+  match init_results {
+    [] => Iterator::singleton(null)
+    [first, .. _] => {
+      let accumulator = eval_with_env(expr, input, env).fold(
+        init=first,
+        fn(acc, item) raise InterpreterError {
+          let new_env = env.set(var_name, item)
+          let update_results = eval_with_env(update_expr, acc, new_env).collect()
+          match update_results {
+            [] => acc
+            [next, .. _] => next
+          }
+        },
+      )
+      Iterator::singleton(accumulator)
     }
   }
-  Iterator::singleton(accumulator)
 }
 
 ///|
