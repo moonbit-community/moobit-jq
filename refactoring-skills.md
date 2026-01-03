@@ -13,3 +13,11 @@ After: ast/interpreter.mbt keeps eval, with helpers in ast/interpreter_env.mbt a
 - Example:
 Before: ast/comprehensive_test.mbt defined test_query and mixed all feature tests.
 After: ast/test_helpers_test.mbt holds test_query; tests live in ast/comprehensive_*_test.mbt and ast/corner_cases_*_test.mbt.
+
+## 2026-01-03: Extract access/construct/operation evaluators
+- Problem: Core expression evaluation cases were bloating the main interpreter file.
+- Change: Moved access, construct, and binary operation evaluation into focused helpers.
+- Result: Cleaner interpreter dispatch with no behavior change.
+- Example:
+Before: ast/interpreter.mbt held Key/Index/Slice/Optional and construct/operation logic inline.
+After: ast/interpreter_access.mbt, ast/interpreter_construct.mbt, and ast/interpreter_operation.mbt contain those helpers.

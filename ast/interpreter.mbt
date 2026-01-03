@@ -44,143 +44,26 @@ fn eval_with_env(
       )
 
     // Field access
-    Key(key) =>
-      match input {
-        Object(obj) =>
-          match obj.get(key) {
-            Some(v) => Iterator::singleton(v)
-            None => Iterator::singleton(null)
-          }
-        _ => Iterator::singleton(null)
-      }
+    Key(key) => eval_key_access(key, input)
 
     // Array indexing and iteration
-    Index(indices) =>
-      if indices.is_empty() {
-        // Empty index means iterate over array/object values
-        match input {
-          Array(arr) => arr.iterator()
-          Object(obj) => {
-            let values : Array[Json] = []
-            for _k, v in obj {
-              values.push(v)
-            }
-            values.iterator()
-          }
-          _ => Iterator::empty()
-        }
-      } else {
-        // Multiple indices produce multiple results
-        indices
-        .iterator()
-        .map(fn(idx) {
-          match input {
-            Array(arr) => {
-              let i = if idx < 0 { arr.length() + idx } else { idx }
-              if i >= 0 && i < arr.length() {
-                arr[i]
-              } else {
-                null
-              }
-            }
-            _ => null
-          }
-        })
-      }
+    Index(indices) => eval_index_access(indices, input)
 
     // Array slicing
-    Slice(start, end) =>
-      match input {
-        Array(arr) => {
-          let len = arr.length()
-          let s = match start {
-            Some(n) => if n < 0 { len + n } else { n }
-            None => 0
-          }
-          let e = match end {
-            Some(n) => if n < 0 { len + n } else { n }
-            None => len
-          }
-          let result : Array[Json] = []
-          for i = s; i < e && i < len; i = i + 1 {
-            if i >= 0 {
-              result.push(arr[i])
-            }
-          }
-          Iterator::singleton(Json::array(result))
-        }
-        _ => Iterator::singleton(null)
-      }
+    Slice(start, end) => eval_slice_access(start, end, input)
 
     // Optional: suppress errors and return empty on failure
-    Optional(inner) =>
-      eval_with_env(inner, input, env) catch {
-        _ => Iterator::empty()
-      }
+    Optional(inner) => eval_optional(inner, input, env)
 
     // Array construction
-    ArrayConstruct(expr_opt) =>
-      match expr_opt {
-        None => Iterator::singleton(Json::array([]))
-        Some(e) => {
-          let results = eval_with_env(e, input, env).collect()
-          Iterator::singleton(Json::array(results))
-        }
-      }
+    ArrayConstruct(expr_opt) => eval_array_construct(expr_opt, input, env)
 
     // Object construction
-    ObjectConstruct(pairs) => {
-      let obj : Map[String, Json] = {}
-      for pair in pairs {
-        let (key_expr, value_expr_opt) = pair
-        // Evaluate key to get string
-        let key_results = eval_with_env(key_expr, input, env).collect()
-        if key_results.is_empty() {
-          continue
-        }
-        let key_str = match key_results[0] {
-          String(s) => s
-          _ => raise TypeMismatch("string", json_type_name(key_results[0]))
-        }
-
-        // Evaluate value or use key from input
-        let value = match value_expr_opt {
-          Some(value_expr) => {
-            let value_results = eval_with_env(value_expr, input, env).collect()
-            if value_results.is_empty() {
-              null
-            } else {
-              value_results[0]
-            }
-          }
-          None =>
-            // Shorthand: {foo} means {foo: .foo}
-            match input {
-              Object(input_obj) =>
-                match input_obj.get(key_str) {
-                  Some(v) => v
-                  None => null
-                }
-              _ => null
-            }
-        }
-        obj[key_str] = value
-      }
-      Iterator::singleton(Json::object(obj))
-    }
+    ObjectConstruct(pairs) => eval_object_construct(pairs, input, env)
 
     // Binary operations
-    Operation(left, op, right) => {
-      let left_results = eval_with_env(left, input, env).collect()
-      let right_results = eval_with_env(right, input, env).collect()
-      let all_results : Array[Json] = []
-      for left_val in left_results {
-        for right_val in right_results {
-          all_results.push(eval_binary_op(op, left_val, right_val))
-        }
-      }
-      all_results.iterator()
-    }
+    Operation(left, op, right) =>
+      eval_operation_expr(left, op, right, input, env)
 
     // Built-in functions
     Length => {
