@@ -680,60 +680,12 @@ fn eval_with_env(
     Atan => eval_atan(input)
 
     // Regex functions (simple implementations)
-    Test(pattern) =>
-      match input {
-        String(s) => Iterator::singleton(Json::boolean(s.contains(pattern)))
-        _ => raise TypeMismatch("string", json_type_name(input))
-      }
-    Match(pattern) =>
-      match input {
-        String(s) =>
-          if s.contains(pattern) {
-            Iterator::singleton(
-              Json::object(
-                Map::from_array([
-                  ("match", Json::string(pattern)),
-                  ("offset", Json::number(0.0)),
-                  ("length", Json::number(pattern.length().to_double())),
-                  ("string", Json::string(s)),
-                  ("captures", Json::array([])),
-                ]),
-              ),
-            )
-          } else {
-            Iterator::empty()
-          }
-        _ => raise TypeMismatch("string", json_type_name(input))
-      }
-    Capture(_pattern) =>
-      match input {
-        String(_s) => Iterator::singleton(Json::object(Map::from_array([])))
-        _ => raise TypeMismatch("string", json_type_name(input))
-      }
-    Splits(pattern) =>
-      match input {
-        String(s) => {
-          let parts = s.split(pattern).collect()
-          parts.iterator().map(part => Json::string(part.to_string()))
-        }
-        _ => raise TypeMismatch("string", json_type_name(input))
-      }
-    Sub(pattern, replacement) =>
-      match input {
-        String(s) =>
-          Iterator::singleton(
-            Json::string(s.replace(old=pattern[:], new=replacement[:])),
-          )
-        _ => raise TypeMismatch("string", json_type_name(input))
-      }
-    GSub(pattern, replacement) =>
-      match input {
-        String(s) =>
-          Iterator::singleton(
-            Json::string(s.replace_all(old=pattern[:], new=replacement[:])),
-          )
-        _ => raise TypeMismatch("string", json_type_name(input))
-      }
+    Test(pattern) => eval_test(pattern, input)
+    Match(pattern) => eval_match(pattern, input)
+    Capture(pattern) => eval_capture(pattern, input)
+    Splits(pattern) => eval_splits(pattern, input)
+    Sub(pattern, replacement) => eval_sub(pattern, replacement, input)
+    GSub(pattern, replacement) => eval_gsub(pattern, replacement, input)
 
     // Newly added features - corner case implementations
     MapValues(expr) =>

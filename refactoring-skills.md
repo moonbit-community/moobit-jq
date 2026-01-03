@@ -69,3 +69,11 @@ After: ast/interpreter_iteration.mbt hosts the shared eval_* implementations.
 - Example:
 Before: ast/interpreter.mbt had path evaluation bodies inline.
 After: ast/interpreter_paths.mbt provides eval_* helpers for path operations.
+
+## 2026-01-03: Extract regex helpers
+- Problem: Regex-like string helpers were inline in the evaluator.
+- Change: Moved Test/Match/Capture/Splits/Sub/GSub into ast/interpreter_regex.mbt.
+- Result: Regex operations are grouped with clearer dispatch.
+- Example:
+Before: ast/interpreter.mbt implemented regex helpers inline.
+After: ast/interpreter_regex.mbt contains eval_* regex helpers.
