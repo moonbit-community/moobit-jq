@@ -45,3 +45,11 @@ After: ast/interpreter_numeric.mbt provides eval_* helpers for those cases.
 - Example:
 Before: ast/interpreter.mbt had Split/Join/Contains/Inside and LTrimStr/RTrimStr/AsciiUpcase/AsciiDowncase inline.
 After: ast/interpreter_string_ops.mbt owns those implementations.
+
+## 2026-01-03: Extract object/array entry operations
+- Problem: Entry conversion and membership checks cluttered the evaluator dispatch.
+- Change: Moved Has/In/ToEntries/FromEntries/WithEntries into ast/interpreter_object_array_ops.mbt.
+- Result: Collection ops are grouped in one helper file with the same behavior.
+- Example:
+Before: ast/interpreter.mbt implemented Has/In and *Entries cases inline.
+After: ast/interpreter_object_array_ops.mbt provides eval_* helpers for those cases.
