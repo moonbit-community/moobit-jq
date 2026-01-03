@@ -66,46 +66,12 @@ fn eval_with_env(
       eval_operation_expr(left, op, right, input, env)
 
     // Built-in functions
-    Length => {
-      let len = match input {
-        Array(arr) => arr.length()
-        Object(obj) => obj.length()
-        String(s) => s.length()
-        Null => 0
-        _ => raise TypeMismatch("array/object/string", json_type_name(input))
-      }
-      Iterator::singleton(Json::number(len.to_double()))
-    }
-    Keys =>
-      match input {
-        Object(obj) => {
-          let keys : Array[Json] = []
-          for k, _v in obj {
-            keys.push(Json::string(k))
-          }
-          Iterator::singleton(Json::array(keys))
-        }
-        Array(arr) => {
-          let indices = arr.mapi((i, _) => Json::number(i.to_double()))
-          Iterator::singleton(Json::array(indices))
-        }
-        _ => raise TypeMismatch("object/array", json_type_name(input))
-      }
-    Values =>
-      match input {
-        Object(obj) => {
-          let values : Array[Json] = []
-          for _k, v in obj {
-            values.push(v)
-          }
-          Iterator::singleton(Json::array(values))
-        }
-        Array(arr) => Iterator::singleton(Json::array(arr))
-        _ => raise TypeMismatch("object/array", json_type_name(input))
-      }
-    Type => Iterator::singleton(Json::string(json_type_name(input)))
-    Empty => Iterator::empty()
-    Not => Iterator::singleton(Json::boolean(not(is_truthy(input))))
+    Length => eval_length(input)
+    Keys => eval_keys(input)
+    Values => eval_values(input)
+    Type => eval_type(input)
+    Empty => eval_empty()
+    Not => eval_not(input)
 
     // Array functions
     Map(inner) => eval_map(inner, input, env)

@@ -101,3 +101,11 @@ After: ast/interpreter_assignment.mbt and ast/interpreter_traversal.mbt/ast/inte
 - Example:
 Before: ast/interpreter.mbt implemented control flow inline.
 After: ast/interpreter_control_flow.mbt provides eval_* control-flow helpers.
+
+## 2026-01-03: Extract basic builtins
+- Problem: Core built-in evaluators cluttered the top of the dispatch.
+- Change: Moved Length/Keys/Values/Type/Empty/Not into ast/interpreter_builtins.mbt.
+- Result: Built-ins are grouped and the evaluator switch is shorter.
+- Example:
+Before: ast/interpreter.mbt implemented Length/Keys/Values/Type/Empty/Not inline.
+After: ast/interpreter_builtins.mbt hosts eval_* helpers for those cases.
