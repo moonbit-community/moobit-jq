@@ -2,7 +2,6 @@
 /// Parse pipe expression (lowest precedence)
 fn Parser::parse_pipe(self : Parser) -> @ast.Expr raise ParseError {
   let expr = self.parse_comma()
-
   if self.consume(TAs) {
     let var_name = match self.current() {
       Some(TVariable(name)) => {
@@ -15,7 +14,6 @@ fn Parser::parse_pipe(self : Parser) -> @ast.Expr raise ParseError {
     let body = self.parse_pipe()
     return @ast.Expr::As(expr, var_name, body)
   }
-
   loop expr {
     current =>
       if self.consume(TPipe) {

@@ -35,7 +35,9 @@ test "coverage: sub/gsub replace text" {
   @json.inspect(coverage_eval("sub(\"world\"; \"moon\")", "\"hello world\""), content=[
     "hello moon",
   ])
-  @json.inspect(coverage_eval("gsub(\"a\"; \"b\")", "\"a a a\""), content=["b b b"])
+  @json.inspect(coverage_eval("gsub(\"a\"; \"b\")", "\"a a a\""), content=[
+    "b b b",
+  ])
 }
 
 ///|

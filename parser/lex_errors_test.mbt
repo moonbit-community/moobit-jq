@@ -1,6 +1,5 @@
 ///|
 /// Lexing error handling
-
 test "lex: error - unterminated string" {
   let result = try? @parser.lex("\"hello")
   match result {

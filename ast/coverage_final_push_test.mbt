@@ -1,8 +1,9 @@
 ///|
 test "coverage: foreach extract empty falls back to accumulator" {
-  @json.inspect(coverage_eval("foreach .[] as $x (0; . + $x; empty)", "[1, 2]"), content=[
-    1, 3,
-  ])
+  @json.inspect(
+    coverage_eval("foreach .[] as $x (0; . + $x; empty)", "[1, 2]"),
+    content=[1, 3],
+  )
 }
 
 ///|

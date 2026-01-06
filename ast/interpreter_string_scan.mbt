@@ -3,7 +3,8 @@
 fn eval_explode(input : Json) -> Iterator[Json] raise InterpreterError {
   match input {
     String(s) => {
-      let results = s.iterator()
+      let results = s
+        .iterator()
         .map(fn(char) { Json::number(char.to_int().to_double()) })
         .to_array()
       Iterator::singleton(Json::array(results))
@@ -59,11 +60,11 @@ fn scan_matches(
     return
   }
   let slice_result = s[idx:idx + plen] catch {
-    _ => {
-      scan_matches(s, pattern, idx + 1, slen, plen, results)
-      return
+      _ => {
+        scan_matches(s, pattern, idx + 1, slen, plen, results)
+        return
+      }
     }
-  }
   if slice_result.to_string() == pattern {
     results.push(Json::string(pattern))
     scan_matches(s, pattern, idx + plen, slen, plen, results)

@@ -7,12 +7,16 @@ test "coverage: update operator supports chained paths and indices" {
   @json.inspect(coverage_eval(".a.b |= . + 1", input_obj), content=[
     { "a": { "b": 2 } },
   ])
-  @json.inspect(coverage_eval(".[1] |= . + 10", "[1, 2, 3]"), content=[[1, 12, 3]])
+  @json.inspect(coverage_eval(".[1] |= . + 10", "[1, 2, 3]"), content=[
+    [1, 12, 3],
+  ])
 }
 
 ///|
 test "coverage: delpaths deletes array indices" {
-  @json.inspect(coverage_eval("delpaths([[1]])", "[10, 20, 30]"), content=[[10, 30]])
+  @json.inspect(coverage_eval("delpaths([[1]])", "[10, 20, 30]"), content=[
+    [10, 30],
+  ])
 }
 
 ///|
@@ -35,7 +39,8 @@ test "coverage: setpath and delpaths for nested arrays" {
   @json.inspect(coverage_eval("delpaths([[1, 0]])", "[[0], [1, 2]]"), content=[
     [[0], [2]],
   ])
-  @json.inspect(coverage_eval("delpaths([[\"missing\", \"x\"]])", "{\"a\": 1}"), content=[
-    { "a": 1 },
-  ])
+  @json.inspect(
+    coverage_eval("delpaths([[\"missing\", \"x\"]])", "{\"a\": 1}"),
+    content=[{ "a": 1 }],
+  )
 }

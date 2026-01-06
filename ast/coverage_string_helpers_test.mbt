@@ -6,5 +6,7 @@ test "coverage: more string search helpers" {
 
 ///|
 test "coverage: @html escapes ampersand and quotes" {
-  @json.inspect(coverage_eval("@html", "\"&\\\"'\""), content=["&amp;&quot;&#39;"])
+  @json.inspect(coverage_eval("@html", "\"&\\\"'\""), content=[
+    "&amp;&quot;&#39;",
+  ])
 }

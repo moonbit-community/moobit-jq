@@ -22,14 +22,15 @@ test "coverage: function argument handling" {
   assert_true(
     (try? coverage_eval("def f(x; y): $x + $y; f(1)", "null")) is Err(_),
   )
-  @json.inspect(coverage_eval("def id(x): $x; id(empty)", "null"), content=[null])
+  @json.inspect(coverage_eval("def id(x): $x; id(empty)", "null"), content=[
+    null,
+  ])
 }
 
 ///|
 test "coverage: reduce and assignment edges" {
-  @json.inspect(
-    coverage_eval("reduce .[] as $x (empty; . + $x)", "[1, 2]"),
-    content=[null],
-  )
+  @json.inspect(coverage_eval("reduce .[] as $x (empty; . + $x)", "[1, 2]"), content=[
+    null,
+  ])
   @json.inspect(coverage_eval(".a = empty", "{\"a\": 1}"), content=[{ "a": 1 }])
 }

@@ -6,7 +6,11 @@ fn eval_update(
   input : Json,
   env : Env,
 ) -> Iterator[Json] raise InterpreterError {
-  fn apply_update(obj : Json, p : Expr, upd : Expr) -> Json raise InterpreterError {
+  fn apply_update(
+    obj : Json,
+    p : Expr,
+    upd : Expr,
+  ) -> Json raise InterpreterError {
     match p {
       Identity => {
         let results = eval_with_env(upd, obj, env).collect()

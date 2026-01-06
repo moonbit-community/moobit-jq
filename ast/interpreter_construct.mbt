@@ -48,7 +48,8 @@ fn eval_object_construct(
         }
         obj[key_str] = value
       }
-      Some(other) => raise TypeMismatch("string", @ast_internal.json_type_name(other))
+      Some(other) =>
+        raise TypeMismatch("string", @ast_internal.json_type_name(other))
     }
   }
   Iterator::singleton(Json::object(obj))

@@ -17,7 +17,9 @@ fn Parser::parse_builtin_flow_range(
               self.advance()
               let third_expr = self.parse_pipe()
               self.expect(TRParen)
-              Some(@ast.Expr::RangeWithStep(first_expr, second_expr, third_expr))
+              Some(
+                @ast.Expr::RangeWithStep(first_expr, second_expr, third_expr),
+              )
             }
             _ => {
               self.expect(TRParen)

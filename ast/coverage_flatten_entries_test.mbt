@@ -5,7 +5,9 @@ test "coverage: flatten default depth flattens all" {
 
 ///|
 test "coverage: flatten(n) flattens one level" {
-  @json.inspect(coverage_eval("flatten(1)", "[1, [2, [3]]]"), content=[[1, 2, [3]]])
+  @json.inspect(coverage_eval("flatten(1)", "[1, [2, [3]]]"), content=[
+    [1, 2, [3]],
+  ])
 }
 
 ///|
@@ -27,12 +29,14 @@ test "coverage: to_entries supports arrays" {
 
 ///|
 test "coverage: from_entries supports numeric keys and name fallback" {
-  @json.inspect(coverage_eval("from_entries", "[{\"key\":0,\"value\":\"a\"}]"), content=[
-    { "0": "a" },
-  ])
-  @json.inspect(coverage_eval("from_entries", "[{\"name\":\"a\",\"value\":1}]"), content=[
-    { "a": 1 },
-  ])
+  @json.inspect(
+    coverage_eval("from_entries", "[{\"key\":0,\"value\":\"a\"}]"),
+    content=[{ "0": "a" }],
+  )
+  @json.inspect(
+    coverage_eval("from_entries", "[{\"name\":\"a\",\"value\":1}]"),
+    content=[{ "a": 1 }],
+  )
 }
 
 ///|

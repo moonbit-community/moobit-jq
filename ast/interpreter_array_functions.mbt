@@ -7,16 +7,16 @@ fn eval_map(
 ) -> Iterator[Json] raise InterpreterError {
   match input {
     Array(arr) => {
-      let results : Array[Json] = arr.fold(
-        init=[],
-        fn(acc, elem) raise InterpreterError {
-          let mapped = eval_with_env(inner, elem, env).collect()
-          for v in mapped {
-            acc.push(v)
-          }
-          acc
-        },
-      )
+      let results : Array[Json] = arr.fold(init=[], fn(
+        acc,
+        elem,
+      ) raise InterpreterError {
+        let mapped = eval_with_env(inner, elem, env).collect()
+        for v in mapped {
+          acc.push(v)
+        }
+        acc
+      })
       Iterator::singleton(Json::array(results))
     }
     _ => raise TypeMismatch("array", @ast_internal.json_type_name(input))
@@ -59,9 +59,7 @@ fn eval_sort(input : Json) -> Iterator[Json] raise InterpreterError {
 /// Evaluate array reverse
 fn eval_reverse(input : Json) -> Iterator[Json] raise InterpreterError {
   match input {
-    Array(arr) => {
-      Iterator::singleton(Json::array(arr.rev()))
-    }
+    Array(arr) => Iterator::singleton(Json::array(arr.rev()))
     _ => raise TypeMismatch("array", @ast_internal.json_type_name(input))
   }
 }

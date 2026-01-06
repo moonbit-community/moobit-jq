@@ -22,13 +22,13 @@ fn eval_foreach(
       let update_results = eval_with_env(update_expr, acc, new_env).collect()
       match update_results {
         [] => (acc, results)
-        [next, .. _] => {
+        [next, ..] => {
           let output = match extract_expr {
             Some(extract) => {
               let extract_results = eval_with_env(extract, next, new_env).collect()
               match extract_results {
                 [] => next
-                [first, .. _] => first
+                [first, ..] => first
               }
             }
             None => next

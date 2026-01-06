@@ -1,6 +1,9 @@
 ///|
 /// Evaluate variable lookup
-fn eval_variable(name : String, env : Env) -> Iterator[Json] raise InterpreterError {
+fn eval_variable(
+  name : String,
+  env : Env,
+) -> Iterator[Json] raise InterpreterError {
   match env.get(name) {
     Some(v) => Iterator::singleton(v)
     None => raise InvalidOperation("Undefined variable: $\{name}")
@@ -28,7 +31,7 @@ fn eval_function_call(
           let results = eval_with_env(arg, input, env).collect()
           match results {
             [] => null
-            [first, .. _] => first
+            [first, ..] => first
           }
         })
         let new_env = bind_params(env, params[:], arg_values[:])

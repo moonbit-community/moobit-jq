@@ -1,6 +1,9 @@
 ///|
 /// Evaluate string split
-fn eval_split(sep : String, input : Json) -> Iterator[Json] raise InterpreterError {
+fn eval_split(
+  sep : String,
+  input : Json,
+) -> Iterator[Json] raise InterpreterError {
   match input {
     String(s) => {
       let parts = s.split(sep).collect()
@@ -13,7 +16,10 @@ fn eval_split(sep : String, input : Json) -> Iterator[Json] raise InterpreterErr
 
 ///|
 /// Evaluate string join
-fn eval_join(sep : String, input : Json) -> Iterator[Json] raise InterpreterError {
+fn eval_join(
+  sep : String,
+  input : Json,
+) -> Iterator[Json] raise InterpreterError {
   match input {
     Array(arr) => {
       let parts = json_to_strings(arr[:])
@@ -51,7 +57,7 @@ fn eval_ends_with(
 fn string_views_to_json(parts : ArrayView[StringView]) -> Array[Json] {
   match parts {
     [] => []
-    [head, ..tail] =>
+    [head, .. tail] =>
       [Json::string(head.to_string())] + string_views_to_json(tail)
   }
 }
@@ -60,8 +66,8 @@ fn string_views_to_json(parts : ArrayView[StringView]) -> Array[Json] {
 fn json_to_strings(parts : ArrayView[Json]) -> Array[String] {
   match parts {
     [] => []
-    [String(s), ..tail] => [s] + json_to_strings(tail)
-    [head, ..tail] => [head.to_string()] + json_to_strings(tail)
+    [String(s), .. tail] => [s] + json_to_strings(tail)
+    [head, .. tail] => [head.to_string()] + json_to_strings(tail)
   }
 }
 
@@ -69,7 +75,7 @@ fn json_to_strings(parts : ArrayView[Json]) -> Array[String] {
 fn array_contains_view(haystack : ArrayView[Json], needle : Json) -> Bool {
   match haystack {
     [] => false
-    [head, ..tail] =>
+    [head, .. tail] =>
       if head == needle {
         true
       } else {
@@ -85,7 +91,7 @@ fn array_contains_all(
 ) -> Bool {
   match (needles, haystack) {
     ([], _) => true
-    ([needle, ..rest], _) =>
+    ([needle, .. rest], _) =>
       if array_contains_view(haystack, needle) {
         array_contains_all(haystack, rest)
       } else {
@@ -103,17 +109,18 @@ fn eval_contains(
 ) -> Iterator[Json] raise InterpreterError {
   match eval_with_env(expr, input, env).collect() {
     [] => Iterator::singleton(Json::boolean(false))
-    [needle, .. _] => {
+    [needle, ..] =>
       match (input, needle) {
         (String(haystack), String(n)) =>
           Iterator::singleton(Json::boolean(haystack.contains(n)))
         (Array(haystack), _) =>
-          Iterator::singleton(Json::boolean(array_contains_view(haystack[:], needle)))
+          Iterator::singleton(
+            Json::boolean(array_contains_view(haystack[:], needle)),
+          )
         (Object(haystack), String(key)) =>
           Iterator::singleton(Json::boolean(haystack.contains(key)))
         _ => Iterator::singleton(Json::boolean(false))
       }
-    }
   }
 }
 
@@ -126,18 +133,17 @@ fn eval_inside(
 ) -> Iterator[Json] raise InterpreterError {
   match eval_with_env(expr, input, env).collect() {
     [] => Iterator::singleton(Json::boolean(false))
-    [container, .. _] => {
+    [container, ..] =>
       match (input, container) {
         (String(needle), String(haystack)) =>
           Iterator::singleton(Json::boolean(haystack.contains(needle)))
         (Array(needle_arr), Array(haystack)) =>
-          Iterator::singleton(Json::boolean(
-            array_contains_all(haystack[:], needle_arr[:]),
-          ))
+          Iterator::singleton(
+            Json::boolean(array_contains_all(haystack[:], needle_arr[:])),
+          )
         (String(key), Object(haystack)) =>
           Iterator::singleton(Json::boolean(haystack.contains(key)))
         _ => Iterator::singleton(Json::boolean(false))
       }
-    }
   }
 }

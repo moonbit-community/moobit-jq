@@ -8,10 +8,12 @@ fn eval_has(key : String, input : Json) -> Iterator[Json] {
         _ => return Iterator::singleton(Json::boolean(false))
       }
       let len = arr.length()
-      let actual_idx = if idx_result < 0 { len + idx_result } else { idx_result }
-      Iterator::singleton(
-        Json::boolean(actual_idx >= 0 && actual_idx < len),
-      )
+      let actual_idx = if idx_result < 0 {
+        len + idx_result
+      } else {
+        idx_result
+      }
+      Iterator::singleton(Json::boolean(actual_idx >= 0 && actual_idx < len))
     }
     _ => Iterator::singleton(Json::boolean(false))
   }
@@ -26,12 +28,12 @@ fn eval_in(
 ) -> Iterator[Json] raise InterpreterError {
   match eval_with_env(expr, input, env).collect() {
     [] => Iterator::singleton(Json::boolean(false))
-    [Object(obj), .. _] =>
+    [Object(obj), ..] =>
       match input {
         String(key) => Iterator::singleton(Json::boolean(obj.contains(key)))
         _ => Iterator::singleton(Json::boolean(false))
       }
-    [Array(arr), .. _] =>
+    [Array(arr), ..] =>
       match input {
         Number(n, ..) => {
           let idx = n.to_int()
@@ -52,16 +54,22 @@ fn eval_in(
 fn eval_to_entries(input : Json) -> Iterator[Json] raise InterpreterError {
   match input {
     Object(obj) =>
-      Iterator::singleton(Json::array(
-        obj.to_array().map(fn(pair) {
-          let (k, v) = pair
-          entry_from_pair(Json::string(k), v)
-        }),
-      ))
+      Iterator::singleton(
+        Json::array(
+          obj
+          .to_array()
+          .map(fn(pair) {
+            let (k, v) = pair
+            entry_from_pair(Json::string(k), v)
+          }),
+        ),
+      )
     Array(arr) =>
-      Iterator::singleton(Json::array(
-        arr.mapi(fn(i, v) { entry_from_pair(Json::number(i.to_double()), v) }),
-      ))
+      Iterator::singleton(
+        Json::array(
+          arr.mapi(fn(i, v) { entry_from_pair(Json::number(i.to_double()), v) }),
+        ),
+      )
     _ => raise TypeMismatch("object/array", @ast_internal.json_type_name(input))
   }
 }
@@ -71,9 +79,9 @@ fn eval_to_entries(input : Json) -> Iterator[Json] raise InterpreterError {
 fn eval_from_entries(input : Json) -> Iterator[Json] raise InterpreterError {
   match input {
     Array(arr) =>
-      Iterator::singleton(Json::object(
-        Map::from_array(arr.filter_map(entry_to_pair)[:]),
-      ))
+      Iterator::singleton(
+        Json::object(Map::from_array(arr.filter_map(entry_to_pair)[:])),
+      )
     _ => raise TypeMismatch("array", @ast_internal.json_type_name(input))
   }
 }

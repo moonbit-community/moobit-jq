@@ -32,7 +32,7 @@ fn compare_array_view(a : ArrayView[Json], b : ArrayView[Json]) -> Int {
     ([], []) => 0
     ([], _) => -1
     (_, []) => 1
-    ([head_a, ..tail_a], [head_b, ..tail_b]) => {
+    ([head_a, .. tail_a], [head_b, .. tail_b]) => {
       let cmp = compare_json(head_a, head_b)
       if cmp != 0 {
         cmp

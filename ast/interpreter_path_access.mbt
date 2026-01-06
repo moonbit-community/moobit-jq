@@ -10,12 +10,11 @@ fn eval_get_path(
     return Iterator::singleton(null)
   }
   match path_results[0] {
-    Array(path_arr) => {
+    Array(path_arr) =>
       match get_at_path(input, path_arr[:]) {
         Some(value) => Iterator::singleton(value)
         None => Iterator::singleton(null)
       }
-    }
     _ => Iterator::singleton(null)
   }
 }

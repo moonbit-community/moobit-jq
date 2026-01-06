@@ -32,12 +32,12 @@ fn eval_transpose(input : Json) -> Iterator[Json] raise InterpreterError {
 fn collect_arrays(items : ArrayView[Json]) -> Array[Array[Json]]? {
   match items {
     [] => Some([])
-    [Array(inner), ..tail] =>
+    [Array(inner), .. tail] =>
       match collect_arrays(tail) {
         Some(rest) => Some([inner] + rest)
         None => None
       }
-    [_other, .. _] => None
+    [_other, ..] => None
   }
 }
 
@@ -45,7 +45,7 @@ fn collect_arrays(items : ArrayView[Json]) -> Array[Array[Json]]? {
 fn cartesian_product(arrays : ArrayView[Array[Json]]) -> Array[Array[Json]] {
   match arrays {
     [] => [[]]
-    [head, ..tail] => {
+    [head, .. tail] => {
       let tail_results = cartesian_product(tail)
       combine_with_all(head[:], tail_results[:])
     }
@@ -59,7 +59,7 @@ fn combine_with_all(
 ) -> Array[Array[Json]] {
   match items {
     [] => []
-    [head, ..rest] =>
+    [head, .. rest] =>
       prepend_to_all(head, tails) + combine_with_all(rest, tails)
   }
 }
@@ -71,7 +71,7 @@ fn prepend_to_all(
 ) -> Array[Array[Json]] {
   match tails {
     [] => []
-    [tail, ..rest] => [[item] + tail] + prepend_to_all(item, rest)
+    [tail, .. rest] => [[item] + tail] + prepend_to_all(item, rest)
   }
 }
 
@@ -79,7 +79,7 @@ fn prepend_to_all(
 fn max_row_len(rows : ArrayView[Json]) -> Int {
   match rows {
     [] => 0
-    [Array(inner), ..tail] => {
+    [Array(inner), .. tail] => {
       let tail_max = max_row_len(tail)
       if inner.length() > tail_max {
         inner.length()
@@ -87,12 +87,16 @@ fn max_row_len(rows : ArrayView[Json]) -> Int {
         tail_max
       }
     }
-    [_other, ..tail] => max_row_len(tail)
+    [_other, .. tail] => max_row_len(tail)
   }
 }
 
 ///|
-fn build_columns(rows : ArrayView[Json], col : Int, max_len : Int) -> Array[Array[Json]] {
+fn build_columns(
+  rows : ArrayView[Json],
+  col : Int,
+  max_len : Int,
+) -> Array[Array[Json]] {
   if col >= max_len {
     []
   } else {
@@ -104,12 +108,12 @@ fn build_columns(rows : ArrayView[Json], col : Int, max_len : Int) -> Array[Arra
 fn column_values(rows : ArrayView[Json], col : Int) -> Array[Json] {
   match rows {
     [] => []
-    [Array(inner), ..tail] =>
+    [Array(inner), .. tail] =>
       if col < inner.length() {
         [inner[col]] + column_values(tail, col)
       } else {
         column_values(tail, col)
       }
-    [_other, ..tail] => column_values(tail, col)
+    [_other, .. tail] => column_values(tail, col)
   }
 }

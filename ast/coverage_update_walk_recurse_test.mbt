@@ -7,18 +7,15 @@ test "coverage: update operator branches" {
   @json.inspect(coverage_eval(".[0] |= empty", "[1]"), content=[[1]])
   @json.inspect(coverage_eval(".[10] |= . + 1", "[1]"), content=[[1]])
   @json.inspect(coverage_eval(".[] |= .", "[1, 2]"), content=[[1, 2]])
-  @json.inspect(
-    coverage_eval(".a[10] |= . + 1", "{\"a\": [1]}"),
-    content=[{ "a": [1] }],
-  )
-  @json.inspect(
-    coverage_eval(".foo.bar |= . + 1", "{\"foo\": {\"bar\": 1}}"),
-    content=[{ "foo": { "bar": 2 } }],
-  )
-  @json.inspect(
-    coverage_eval(".foo[0] |= . + 1", "{\"foo\": [1]}"),
-    content=[{ "foo": [2] }],
-  )
+  @json.inspect(coverage_eval(".a[10] |= . + 1", "{\"a\": [1]}"), content=[
+    { "a": [1] },
+  ])
+  @json.inspect(coverage_eval(".foo.bar |= . + 1", "{\"foo\": {\"bar\": 1}}"), content=[
+    { "foo": { "bar": 2 } },
+  ])
+  @json.inspect(coverage_eval(".foo[0] |= . + 1", "{\"foo\": [1]}"), content=[
+    { "foo": [2] },
+  ])
 }
 
 ///|

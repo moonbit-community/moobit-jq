@@ -52,7 +52,11 @@ fn delete_at_path(root : Json, path : ArrayView[Json]) -> Json {
           let i = idx.to_int()
           if i >= 0 && i < arr.length() {
             let filtered = arr.mapi(fn(j, v) {
-              if j == i { None } else { Some(v) }
+              if j == i {
+                None
+              } else {
+                Some(v)
+              }
             })
             Json::array(filtered.filter_map(fn(v) { v }))
           } else {
@@ -123,12 +127,14 @@ fn eval_del_paths(
   }
   match paths_results[0] {
     Array(paths_arr) =>
-      Iterator::singleton(paths_arr.fold(init=input, fn(acc, path_json) {
-        match path_json {
-          Array(path) => delete_at_path(acc, path[:])
-          _ => acc
-        }
-      }))
+      Iterator::singleton(
+        paths_arr.fold(init=input, fn(acc, path_json) {
+          match path_json {
+            Array(path) => delete_at_path(acc, path[:])
+            _ => acc
+          }
+        }),
+      )
     _ => Iterator::singleton(input)
   }
 }

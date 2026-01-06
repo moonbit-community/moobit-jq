@@ -1,6 +1,5 @@
 ///|
 /// Lexing operators and punctuation
-
 test "lex: pipe operator" {
   let tokens = @parser.lex(".foo | .bar")
   inspect(

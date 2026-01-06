@@ -17,11 +17,17 @@ fn eval_binary_op(
     LessEq => Json::boolean(compare_json(left, right) <= 0)
     GreaterThan => Json::boolean(compare_json(left, right) > 0)
     GreaterEq => Json::boolean(compare_json(left, right) >= 0)
-    And => if @ast_internal.is_truthy(left) { right } else { Json::boolean(false) }
+    And =>
+      if @ast_internal.is_truthy(left) {
+        right
+      } else {
+        Json::boolean(false)
+      }
     Or => if @ast_internal.is_truthy(left) { left } else { right }
   }
 }
 
+///|
 /// Arithmetic operations
 fn json_add(left : Json, right : Json) -> Json raise InterpreterError {
   match (left, right) {
@@ -76,7 +82,7 @@ fn repeat_string(s : String, count : Int) -> String {
 fn array_contains_compare(haystack : ArrayView[Json], needle : Json) -> Bool {
   match haystack {
     [] => false
-    [head, ..tail] =>
+    [head, .. tail] =>
       if compare_json(head, needle) == 0 {
         true
       } else {
@@ -86,10 +92,13 @@ fn array_contains_compare(haystack : ArrayView[Json], needle : Json) -> Bool {
 }
 
 ///|
-fn array_without(source : ArrayView[Json], remove : ArrayView[Json]) -> Array[Json] {
+fn array_without(
+  source : ArrayView[Json],
+  remove : ArrayView[Json],
+) -> Array[Json] {
   match source {
     [] => []
-    [head, ..tail] =>
+    [head, .. tail] =>
       if array_contains_compare(remove, head) {
         array_without(tail, remove)
       } else {
