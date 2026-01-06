@@ -1,6 +1,5 @@
 ///|
 /// Lexing basic tokens
-
 test "lex: empty input" {
   let tokens = @parser.lex("")
   inspect(tokens, content="[TEof]")

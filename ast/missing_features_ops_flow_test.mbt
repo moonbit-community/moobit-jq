@@ -64,30 +64,48 @@ test "missing: alternative operator //" {
 
 ///|
 test "missing: += operator" {
-  inspect(test_feature(".a += 3", "{\"a\":5}"), content="Object({\"a\": Number(8)})")
+  inspect(
+    test_feature(".a += 3", "{\"a\":5}"),
+    content="Object({\"a\": Number(8)})",
+  )
 }
 
 ///|
 test "missing: -= operator" {
-  inspect(test_feature(".a -= 3", "{\"a\":5}"), content="Object({\"a\": Number(2)})")
+  inspect(
+    test_feature(".a -= 3", "{\"a\":5}"),
+    content="Object({\"a\": Number(2)})",
+  )
 }
 
 ///|
 test "missing: *= operator" {
-  inspect(test_feature(".a *= 3", "{\"a\":5}"), content="Object({\"a\": Number(15)})")
+  inspect(
+    test_feature(".a *= 3", "{\"a\":5}"),
+    content="Object({\"a\": Number(15)})",
+  )
 }
 
 ///|
 test "missing: /= operator" {
-  inspect(test_feature(".a /= 2", "{\"a\":5}"), content="Object({\"a\": Number(2.5)})")
+  inspect(
+    test_feature(".a /= 2", "{\"a\":5}"),
+    content="Object({\"a\": Number(2.5)})",
+  )
 }
 
 ///|
 test "missing: %= operator" {
-  inspect(test_feature(".a %= 2", "{\"a\":5}"), content="Object({\"a\": Number(1)})")
+  inspect(
+    test_feature(".a %= 2", "{\"a\":5}"),
+    content="Object({\"a\": Number(1)})",
+  )
 }
 
 ///|
 test "missing: //= operator" {
-  inspect(test_feature(".a //= 10", "{\"a\":5}"), content="Object({\"a\": Number(5)})")
+  inspect(
+    test_feature(".a //= 10", "{\"a\":5}"),
+    content="Object({\"a\": Number(5)})",
+  )
 }

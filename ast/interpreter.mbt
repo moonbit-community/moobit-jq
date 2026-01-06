@@ -120,8 +120,7 @@ fn eval_with_env(
     Format(format_name) => eval_format(format_name, input)
 
     // String interpolation: "text \(expr) more"
-    StringInterpolation(parts) =>
-      eval_string_interpolation(parts, input, env)
+    StringInterpolation(parts) => eval_string_interpolation(parts, input, env)
 
     // Function definition: this is tricky because we need to update env
     // We handle this specially in the Pipe case when left is FunctionDef
@@ -257,15 +256,10 @@ fn eval_with_env(
     AllGen(gen_expr, cond_expr) => eval_all_gen(gen_expr, cond_expr, input, env)
     Foreach(gen_expr, var_name, init_expr, update_expr, extract_expr) =>
       eval_foreach(
-        gen_expr,
-        var_name,
-        init_expr,
-        update_expr,
-        extract_expr,
-        input,
-        env,
+        gen_expr, var_name, init_expr, update_expr, extract_expr, input, env,
       )
-    PathsWithFilter(filter_expr) => eval_paths_with_filter(filter_expr, input, env)
+    PathsWithFilter(filter_expr) =>
+      eval_paths_with_filter(filter_expr, input, env)
     Scan(pattern) => eval_scan(pattern, input)
   }
 }

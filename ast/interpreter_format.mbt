@@ -1,6 +1,9 @@
 ///|
 /// Evaluate format functions: @base64, @uri, @csv, etc.
-fn eval_format(format_name : String, input : Json) -> Iterator[Json] raise InterpreterError {
+fn eval_format(
+  format_name : String,
+  input : Json,
+) -> Iterator[Json] raise InterpreterError {
   match format_name {
     "base64" =>
       match input {

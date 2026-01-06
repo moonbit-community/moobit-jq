@@ -19,10 +19,13 @@ fn eval_index_access(indices : Array[Int], input : Json) -> Iterator[Json] {
     match input {
       Array(arr) => arr.iterator()
       Object(obj) =>
-        obj.to_array().map(fn(pair) {
+        obj
+        .to_array()
+        .map(fn(pair) {
           let (_k, v) = pair
           v
-        }).iterator()
+        })
+        .iterator()
       _ => Iterator::empty()
     }
   } else {
@@ -47,11 +50,7 @@ fn eval_index_access(indices : Array[Int], input : Json) -> Iterator[Json] {
 
 ///|
 /// Evaluate array slicing
-fn eval_slice_access(
-  start : Int?,
-  end : Int?,
-  input : Json,
-) -> Iterator[Json] {
+fn eval_slice_access(start : Int?, end : Int?, input : Json) -> Iterator[Json] {
   match input {
     Array(arr) => {
       let len = arr.length()
@@ -78,11 +77,7 @@ fn eval_slice_access(
 
 ///|
 /// Evaluate optional expression, suppressing errors
-fn eval_optional(
-  inner : Expr,
-  input : Json,
-  env : Env,
-) -> Iterator[Json] {
+fn eval_optional(inner : Expr, input : Json, env : Env) -> Iterator[Json] {
   eval_with_env(inner, input, env) catch {
     _ => Iterator::empty()
   }

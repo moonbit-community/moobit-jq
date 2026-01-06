@@ -21,12 +21,16 @@ test "coverage: setpath edge cases" {
   @json.inspect(coverage_eval("setpath([\"a\"]; empty)", "{\"a\": 1}"), content=[
     { "a": 1 },
   ])
-  @json.inspect(coverage_eval("setpath(1; 2)", "{\"a\": 1}"), content=[{ "a": 1 }])
+  @json.inspect(coverage_eval("setpath(1; 2)", "{\"a\": 1}"), content=[
+    { "a": 1 },
+  ])
 }
 
 ///|
 test "coverage: delpaths edge cases" {
-  @json.inspect(coverage_eval("delpaths(empty)", "{\"a\": 1}"), content=[{ "a": 1 }])
+  @json.inspect(coverage_eval("delpaths(empty)", "{\"a\": 1}"), content=[
+    { "a": 1 },
+  ])
   @json.inspect(coverage_eval("delpaths(1)", "{\"a\": 1}"), content=[{ "a": 1 }])
   @json.inspect(coverage_eval("delpaths([1, 2])", "{\"a\": 1}"), content=[
     { "a": 1 },

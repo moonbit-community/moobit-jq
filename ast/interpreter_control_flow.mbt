@@ -80,12 +80,12 @@ fn eval_until(
       let cond_results = eval_with_env(cond_expr, current, env).collect()
       match cond_results {
         [] => current
-        [True, .. _] => current
+        [True, ..] => current
         _ => {
           let update_results = eval_with_env(update_expr, current, env).collect()
           match update_results {
             [] => current
-            [next, .. _] => continue next
+            [next, ..] => continue next
           }
         }
       }
@@ -107,7 +107,7 @@ fn eval_while(
       let cond_results = eval_with_env(cond_expr, current, env).collect()
       match cond_results {
         [] => results
-        [first, .. _] =>
+        [first, ..] =>
           if not(@ast_internal.is_truthy(first)) {
             results
           } else {
@@ -115,7 +115,7 @@ fn eval_while(
             let update_results = eval_with_env(update_expr, current, env).collect()
             match update_results {
               [] => results
-              [next, .. _] => continue (next, results)
+              [next, ..] => continue (next, results)
             }
           }
       }

@@ -2,8 +2,7 @@
 /// Evaluate array sum
 fn eval_add(input : Json) -> Iterator[Json] raise InterpreterError {
   match input {
-    Array(arr) =>
-      Iterator::singleton(Json::number(sum_numbers(arr[:])))
+    Array(arr) => Iterator::singleton(Json::number(sum_numbers(arr[:])))
     _ => raise TypeMismatch("array", @ast_internal.json_type_name(input))
   }
 }
@@ -56,8 +55,8 @@ fn eval_max(input : Json) -> Iterator[Json] raise InterpreterError {
 fn sum_numbers(arr : ArrayView[Json]) -> Double {
   match arr {
     [] => 0.0
-    [Number(n, ..), ..tail] => n + sum_numbers(tail)
-    [_head, ..tail] => sum_numbers(tail)
+    [Number(n, ..), .. tail] => n + sum_numbers(tail)
+    [_head, .. tail] => sum_numbers(tail)
   }
 }
 
@@ -65,7 +64,7 @@ fn sum_numbers(arr : ArrayView[Json]) -> Double {
 fn min_in_view(arr : ArrayView[Json]) -> Json? {
   match arr {
     [] => None
-    [head, ..tail] => Some(min_in_tail(head, tail))
+    [head, .. tail] => Some(min_in_tail(head, tail))
   }
 }
 
@@ -73,7 +72,7 @@ fn min_in_view(arr : ArrayView[Json]) -> Json? {
 fn min_in_tail(current : Json, rest : ArrayView[Json]) -> Json {
   match rest {
     [] => current
-    [head, ..tail] => {
+    [head, .. tail] => {
       let next = if compare_json(head, current) < 0 { head } else { current }
       min_in_tail(next, tail)
     }
@@ -84,7 +83,7 @@ fn min_in_tail(current : Json, rest : ArrayView[Json]) -> Json {
 fn max_in_view(arr : ArrayView[Json]) -> Json? {
   match arr {
     [] => None
-    [head, ..tail] => Some(max_in_tail(head, tail))
+    [head, .. tail] => Some(max_in_tail(head, tail))
   }
 }
 
@@ -92,7 +91,7 @@ fn max_in_view(arr : ArrayView[Json]) -> Json? {
 fn max_in_tail(current : Json, rest : ArrayView[Json]) -> Json {
   match rest {
     [] => current
-    [head, ..tail] => {
+    [head, .. tail] => {
       let next = if compare_json(head, current) > 0 { head } else { current }
       max_in_tail(next, tail)
     }

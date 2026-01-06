@@ -41,9 +41,7 @@ test "missing: ascii_downcase" {
 ///|
 test "missing: string interpolation" {
   inspect(
-    test_feature(
-      "\"Hello \\(.name)\"", "{\"name\":\"World\"}",
-    ),
+    test_feature("\"Hello \\(.name)\"", "{\"name\":\"World\"}"),
     content=(
       #|String("Hello World")
     ),

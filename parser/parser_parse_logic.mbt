@@ -18,10 +18,10 @@ fn Parser::parse_and(self : Parser) -> @ast.Expr raise ParseError {
     expr =>
       if self.consume(TAnd) {
         continue @ast.Expr::Operation(
-          expr,
-          @ast.BinaryOp::And,
-          self.parse_comparison(),
-        )
+            expr,
+            @ast.BinaryOp::And,
+            self.parse_comparison(),
+          )
       } else {
         expr
       }

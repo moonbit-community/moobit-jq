@@ -36,10 +36,12 @@ fn recurse_all(input : Json) -> Iterator[Json] {
     Array(arr) =>
       Iterator::singleton(input).concat(arr.iterator().flat_map(recurse_all))
     Object(obj) => {
-      let values = obj.to_array().map(fn(pair) {
-        let (_k, v) = pair
-        v
-      })
+      let values = obj
+        .to_array()
+        .map(fn(pair) {
+          let (_k, v) = pair
+          v
+        })
       Iterator::singleton(input).concat(values.iterator().flat_map(recurse_all))
     }
     _ => Iterator::singleton(input)

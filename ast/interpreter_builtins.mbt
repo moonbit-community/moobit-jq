@@ -6,7 +6,11 @@ fn eval_length(input : Json) -> Iterator[Json] raise InterpreterError {
     Object(obj) => obj.length()
     String(s) => s.length()
     Null => 0
-    _ => raise TypeMismatch("array/object/string", @ast_internal.json_type_name(input))
+    _ =>
+      raise TypeMismatch(
+        "array/object/string",
+        @ast_internal.json_type_name(input),
+      )
   }
   Iterator::singleton(Json::number(len.to_double()))
 }
@@ -16,12 +20,16 @@ fn eval_length(input : Json) -> Iterator[Json] raise InterpreterError {
 fn eval_keys(input : Json) -> Iterator[Json] raise InterpreterError {
   match input {
     Object(obj) =>
-      Iterator::singleton(Json::array(
-        obj.to_array().map(fn(pair) {
-          let (k, _v) = pair
-          Json::string(k)
-        }),
-      ))
+      Iterator::singleton(
+        Json::array(
+          obj
+          .to_array()
+          .map(fn(pair) {
+            let (k, _v) = pair
+            Json::string(k)
+          }),
+        ),
+      )
     Array(arr) => {
       let indices = arr.mapi((i, _) => Json::number(i.to_double()))
       Iterator::singleton(Json::array(indices))
@@ -35,12 +43,16 @@ fn eval_keys(input : Json) -> Iterator[Json] raise InterpreterError {
 fn eval_values(input : Json) -> Iterator[Json] raise InterpreterError {
   match input {
     Object(obj) =>
-      Iterator::singleton(Json::array(
-        obj.to_array().map(fn(pair) {
-          let (_k, v) = pair
-          v
-        }),
-      ))
+      Iterator::singleton(
+        Json::array(
+          obj
+          .to_array()
+          .map(fn(pair) {
+            let (_k, v) = pair
+            v
+          }),
+        ),
+      )
     Array(arr) => Iterator::singleton(Json::array(arr))
     _ => raise TypeMismatch("object/array", @ast_internal.json_type_name(input))
   }

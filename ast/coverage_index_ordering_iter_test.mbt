@@ -34,10 +34,9 @@ test "coverage: iterator helpers and path edges" {
   @json.inspect(coverage_eval(". < []", "false"), content=[false])
   @json.inspect(coverage_eval("flatten(0)", "[1, [2]]"), content=[[1, [2]]])
   @json.inspect(coverage_eval("setpath([]; 1)", "{\"a\": 1}"), content=[1])
-  @json.inspect(
-    coverage_eval("setpath([{}]; 1)", "{\"a\": 1}"),
-    content=[{ "a": 1 }],
-  )
+  @json.inspect(coverage_eval("setpath([{}]; 1)", "{\"a\": 1}"), content=[
+    { "a": 1 },
+  ])
 }
 
 ///|

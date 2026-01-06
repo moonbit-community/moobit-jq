@@ -7,7 +7,7 @@ fn eval_first_gen(
 ) -> Iterator[Json] raise InterpreterError {
   match eval_with_env(gen_expr, input, env).collect()[:] {
     [] => Iterator::empty()
-    [head, .. _] => Iterator::singleton(head)
+    [head, ..] => Iterator::singleton(head)
   }
 }
 

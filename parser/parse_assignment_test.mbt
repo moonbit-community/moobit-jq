@@ -1,6 +1,5 @@
 ///|
 /// Test parsing assignment operators
-
 test "parse update" {
   @json.inspect(@parser.parse(".foo |= . + 1"), content=[
     "Update",

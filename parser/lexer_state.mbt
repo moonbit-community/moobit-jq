@@ -57,6 +57,7 @@ fn Lexer::skip_whitespace(self : Lexer) -> Unit {
         _ => ()
       }
   }
+
 }
 
 ///|
@@ -72,4 +73,5 @@ fn Lexer::skip_comment(self : Lexer) -> Unit {
         }
       }
   }
+
 }
