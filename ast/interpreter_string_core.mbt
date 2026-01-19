@@ -70,15 +70,7 @@ fn json_to_strings(parts : ArrayView[Json]) -> Array[String] {
 
 ///|
 fn array_contains_view(haystack : ArrayView[Json], needle : Json) -> Bool {
-  match haystack {
-    [] => false
-    [head, .. tail] =>
-      if head == needle {
-        true
-      } else {
-        array_contains_view(tail, needle)
-      }
-  }
+  haystack.iter().any(item => item == needle)
 }
 
 ///|
@@ -86,15 +78,7 @@ fn array_contains_all(
   haystack : ArrayView[Json],
   needles : ArrayView[Json],
 ) -> Bool {
-  match (needles, haystack) {
-    ([], _) => true
-    ([needle, .. rest], _) =>
-      if array_contains_view(haystack, needle) {
-        array_contains_all(haystack, rest)
-      } else {
-        false
-      }
-  }
+  needles.iter().all(needle => array_contains_view(haystack, needle))
 }
 
 ///|
