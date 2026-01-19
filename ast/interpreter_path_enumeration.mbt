@@ -19,16 +19,16 @@ fn collect_paths_with_filter(
   match value {
     Object(obj) =>
       for key, val in obj {
-        let new_path = path.copy()
-        new_path.push(key)
-        collect_paths_with_filter(val, new_path, filter_expr, env, results)
+        path.push(key)
+        collect_paths_with_filter(val, path, filter_expr, env, results)
+        ignore(path.pop())
       }
     Array(arr) => {
       let len = arr.length()
       for i in 0..<len {
-        let new_path = path.copy()
-        new_path.push(i.to_string())
-        collect_paths_with_filter(arr[i], new_path, filter_expr, env, results)
+        path.push(i.to_string())
+        collect_paths_with_filter(arr[i], path, filter_expr, env, results)
+        ignore(path.pop())
       }
     }
     _ => ()
@@ -43,16 +43,18 @@ fn eval_paths(input : Json) -> Iter[Json] {
     match value {
       Object(obj) =>
         for key, val in obj {
-          let new_path = path + [Json::string(key)]
-          paths_list.push(Json::array(new_path))
-          collect_paths(val, new_path)
+          path.push(Json::string(key))
+          paths_list.push(Json::array(path.copy()))
+          collect_paths(val, path)
+          ignore(path.pop())
         }
       Array(arr) => {
         let len = arr.length()
         for i in 0..<len {
-          let new_path = path + [Json::number(i.to_double())]
-          paths_list.push(Json::array(new_path))
-          collect_paths(arr[i], new_path)
+          path.push(Json::number(i.to_double()))
+          paths_list.push(Json::array(path.copy()))
+          collect_paths(arr[i], path)
+          ignore(path.pop())
         }
       }
       _ => ()
@@ -71,22 +73,26 @@ fn eval_leaf_paths(input : Json) -> Iter[Json] {
     match value {
       Object(obj) =>
         if obj.is_empty() {
-          paths_list.push(Json::array(path))
+          paths_list.push(Json::array(path.copy()))
         } else {
           for key, val in obj {
-            collect_leaf_paths(val, path + [Json::string(key)])
+            path.push(Json::string(key))
+            collect_leaf_paths(val, path)
+            ignore(path.pop())
           }
         }
       Array(arr) =>
         if arr.is_empty() {
-          paths_list.push(Json::array(path))
+          paths_list.push(Json::array(path.copy()))
         } else {
           let len = arr.length()
           for i in 0..<len {
-            collect_leaf_paths(arr[i], path + [Json::number(i.to_double())])
+            path.push(Json::number(i.to_double()))
+            collect_leaf_paths(arr[i], path)
+            ignore(path.pop())
           }
         }
-      _ => paths_list.push(Json::array(path))
+      _ => paths_list.push(Json::array(path.copy()))
     }
   }
 
