@@ -19,7 +19,7 @@ fn eval_last_gen(
   env : Env,
 ) -> Iter[Json] raise InterpreterError {
   let gen_results = eval_with_env(gen_expr, input, env).collect()
-  match last_in_view(gen_results[:]) {
+  match gen_results.last() {
     Some(value) => Iter::singleton(value)
     None => Iter::empty()
   }
