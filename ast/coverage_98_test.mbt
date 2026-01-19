@@ -1,8 +1,6 @@
 ///|
 test "coverage: update operator deep branches" {
-  json_inspect(coverage_eval(".[0] |= . + 1", "{\"a\":1}"), content=[
-    { "a": 1 },
-  ])
+  json_inspect(coverage_eval(".[0] |= . + 1", "{\"a\":1}"), content=[{ "a": 1 }])
   json_inspect(coverage_eval(".a.b |= . + 1", "{}"), content=[{ "a": null }])
   json_inspect(coverage_eval(".a.b |= . + 1", "1"), content=[1])
   json_inspect(

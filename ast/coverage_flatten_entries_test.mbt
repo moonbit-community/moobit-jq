@@ -29,10 +29,9 @@ test "coverage: to_entries supports arrays" {
 
 ///|
 test "coverage: from_entries supports numeric keys and name fallback" {
-  json_inspect(
-    coverage_eval("from_entries", "[{\"key\":0,\"value\":\"a\"}]"),
-    content=[{ "0": "a" }],
-  )
+  json_inspect(coverage_eval("from_entries", "[{\"key\":0,\"value\":\"a\"}]"), content=[
+    { "0": "a" },
+  ])
   json_inspect(
     coverage_eval("from_entries", "[{\"name\":\"a\",\"value\":1}]"),
     content=[{ "a": 1 }],

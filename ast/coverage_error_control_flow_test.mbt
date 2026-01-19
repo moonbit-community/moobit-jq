@@ -22,9 +22,7 @@ test "coverage: function argument handling" {
   assert_true(
     (try? coverage_eval("def f(x; y): $x + $y; f(1)", "null")) is Err(_),
   )
-  json_inspect(coverage_eval("def id(x): $x; id(empty)", "null"), content=[
-    null,
-  ])
+  json_inspect(coverage_eval("def id(x): $x; id(empty)", "null"), content=[null])
 }
 
 ///|

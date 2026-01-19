@@ -19,11 +19,7 @@ test "parse multiple indices" {
 
 ///|
 test "parse array iterator" {
-  json_inspect(@parser.parse(".[]"), content=[
-    "Pipe",
-    "Identity",
-    ["Index", []],
-  ])
+  json_inspect(@parser.parse(".[]"), content=["Pipe", "Identity", ["Index", []]])
 }
 
 ///|
