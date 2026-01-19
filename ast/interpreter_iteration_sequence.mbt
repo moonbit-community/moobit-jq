@@ -13,9 +13,9 @@ fn eval_range(n : Int) -> Iter[Json] {
 fn eval_first(input : Json) -> Iter[Json] raise InterpreterError {
   match input {
     Array(arr) =>
-      match arr[:] {
-        [] => Iter::empty()
-        [head, ..] => Iter::singleton(head)
+      match arr.get(0) {
+        Some(value) => Iter::singleton(value)
+        None => Iter::empty()
       }
     _ => raise TypeMismatch("array", @ast_internal.json_type_name(input))
   }
