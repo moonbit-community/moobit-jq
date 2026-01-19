@@ -2,7 +2,7 @@
 /// Evaluate range
 fn eval_range(n : Int) -> Iter[Json] {
   if n <= 0 {
-    [].iter()
+    Iter::empty()
   } else {
     Array::makei(n, i => Json::number(i.to_double())).iter()
   }
