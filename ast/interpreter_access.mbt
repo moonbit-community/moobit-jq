@@ -20,8 +20,7 @@ fn index_in_bounds(idx : Int, len : Int) -> Bool {
 }
 
 ///|
-fn array_index_or_null(arr : Array[Json], idx : Int) -> Json {
-  let len = arr.length()
+fn array_index_or_null(arr : Array[Json], len : Int, idx : Int) -> Json {
   let actual_idx = normalize_index(idx, len)
   if index_in_bounds(actual_idx, len) {
     arr[actual_idx]
@@ -55,14 +54,13 @@ fn eval_index_access(indices : Array[Int], input : Json) -> Iter[Json] {
     }
   } else {
     // Multiple indices produce multiple results
-    indices
-    .iter()
-    .map(fn(idx) {
-      match input {
-        Array(arr) => array_index_or_null(arr, idx)
-        _ => null
+    match input {
+      Array(arr) => {
+        let len = arr.length()
+        indices.iter().map(fn(idx) { array_index_or_null(arr, len, idx) })
       }
-    })
+      _ => indices.iter().map(fn(_) { null })
+    }
   }
 }
 
