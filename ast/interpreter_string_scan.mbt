@@ -66,19 +66,20 @@ fn scan_matches(
   plen : Int,
   results : Array[Json],
 ) -> Unit {
-  if idx > slen - plen {
-    return
-  }
-  let slice_result = s[idx:idx + plen] catch {
-    _ => {
-      scan_matches(s, pattern, pattern_view, idx + 1, slen, plen, results)
-      return
+  let mut pos = idx
+  let last = slen - plen
+  while pos <= last {
+    let slice_result = s[pos:pos + plen] catch {
+      _ => {
+        pos = pos + 1
+        continue
+      }
     }
-  }
-  if slice_result == pattern_view {
-    results.push(Json::string(pattern))
-    scan_matches(s, pattern, pattern_view, idx + plen, slen, plen, results)
-  } else {
-    scan_matches(s, pattern, pattern_view, idx + 1, slen, plen, results)
+    if slice_result == pattern_view {
+      results.push(Json::string(pattern))
+      pos = pos + plen
+    } else {
+      pos = pos + 1
+    }
   }
 }
