@@ -53,47 +53,42 @@ fn eval_max(input : Json) -> Iter[Json] raise InterpreterError {
 
 ///|
 fn sum_numbers(arr : ArrayView[Json]) -> Double {
-  match arr {
-    [] => 0.0
-    [Number(n, ..), .. tail] => n + sum_numbers(tail)
-    [_head, .. tail] => sum_numbers(tail)
+  let mut total = 0.0
+  for value in arr {
+    match value {
+      Number(n, ..) => total = total + n
+      _ => ()
+    }
   }
+  total
 }
 
 ///|
 fn min_in_view(arr : ArrayView[Json]) -> Json? {
-  match arr {
-    [] => None
-    [head, .. tail] => Some(min_in_tail(head, tail))
-  }
-}
-
-///|
-fn min_in_tail(current : Json, rest : ArrayView[Json]) -> Json {
-  match rest {
-    [] => current
-    [head, .. tail] => {
-      let next = if compare_json(head, current) < 0 { head } else { current }
-      min_in_tail(next, tail)
+  let mut min_val : Json? = None
+  for value in arr {
+    match min_val {
+      None => min_val = Some(value)
+      Some(current) =>
+        if compare_json(value, current) < 0 {
+          min_val = Some(value)
+        }
     }
   }
+  min_val
 }
 
 ///|
 fn max_in_view(arr : ArrayView[Json]) -> Json? {
-  match arr {
-    [] => None
-    [head, .. tail] => Some(max_in_tail(head, tail))
-  }
-}
-
-///|
-fn max_in_tail(current : Json, rest : ArrayView[Json]) -> Json {
-  match rest {
-    [] => current
-    [head, .. tail] => {
-      let next = if compare_json(head, current) > 0 { head } else { current }
-      max_in_tail(next, tail)
+  let mut max_val : Json? = None
+  for value in arr {
+    match max_val {
+      None => max_val = Some(value)
+      Some(current) =>
+        if compare_json(value, current) > 0 {
+          max_val = Some(value)
+        }
     }
   }
+  max_val
 }
