@@ -32,14 +32,13 @@ fn any_gen_results(
   cond_expr : Expr,
   env : Env,
 ) -> Bool raise InterpreterError {
-  match gen_results {
-    [] => false
-    [head, .. tail] =>
-      match eval_with_env(cond_expr, head, env).collect() {
-        [True, ..] => true
-        _ => any_gen_results(tail, cond_expr, env)
-      }
+  for value in gen_results {
+    match eval_with_env(cond_expr, value, env).collect() {
+      [True, ..] => return true
+      _ => ()
+    }
   }
+  false
 }
 
 ///|
@@ -48,12 +47,11 @@ fn all_gen_results(
   cond_expr : Expr,
   env : Env,
 ) -> Bool raise InterpreterError {
-  match gen_results {
-    [] => true
-    [head, .. tail] =>
-      match eval_with_env(cond_expr, head, env).collect() {
-        [True, ..] => all_gen_results(tail, cond_expr, env)
-        _ => false
-      }
+  for value in gen_results {
+    match eval_with_env(cond_expr, value, env).collect() {
+      [True, ..] => ()
+      _ => return false
+    }
   }
+  true
 }
