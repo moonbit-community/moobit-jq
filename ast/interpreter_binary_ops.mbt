@@ -80,15 +80,12 @@ fn repeat_string(s : String, count : Int) -> String {
 
 ///|
 fn array_contains_compare(haystack : ArrayView[Json], needle : Json) -> Bool {
-  match haystack {
-    [] => false
-    [head, .. tail] =>
-      if compare_json(head, needle) == 0 {
-        true
-      } else {
-        array_contains_compare(tail, needle)
-      }
+  for value in haystack {
+    if compare_json(value, needle) == 0 {
+      return true
+    }
   }
+  false
 }
 
 ///|
@@ -96,15 +93,13 @@ fn array_without(
   source : ArrayView[Json],
   remove : ArrayView[Json],
 ) -> Array[Json] {
-  match source {
-    [] => []
-    [head, .. tail] =>
-      if array_contains_compare(remove, head) {
-        array_without(tail, remove)
-      } else {
-        [head] + array_without(tail, remove)
-      }
+  let result : Array[Json] = []
+  for value in source {
+    if not(array_contains_compare(remove, value)) {
+      result.push(value)
+    }
   }
+  result
 }
 
 ///|
