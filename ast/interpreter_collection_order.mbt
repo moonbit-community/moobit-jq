@@ -88,19 +88,19 @@ fn reduce_min_by(
   current_val : Json,
   rest : ArrayView[Json],
 ) -> (Json, Json) raise InterpreterError {
-  match rest {
-    [] => (current_elem, current_val)
-    [elem, .. tail] =>
-      match eval_with_env(expr, elem, env).collect() {
-        [] => reduce_min_by(expr, env, current_elem, current_val, tail)
-        [val, ..] =>
-          if compare_json(val, current_val) < 0 {
-            reduce_min_by(expr, env, elem, val, tail)
-          } else {
-            reduce_min_by(expr, env, current_elem, current_val, tail)
-          }
-      }
+  let mut min_elem = current_elem
+  let mut min_val = current_val
+  for elem in rest {
+    match eval_with_env(expr, elem, env).collect() {
+      [] => ()
+      [val, ..] =>
+        if compare_json(val, min_val) < 0 {
+          min_elem = elem
+          min_val = val
+        }
+    }
   }
+  (min_elem, min_val)
 }
 
 ///|
@@ -132,17 +132,17 @@ fn reduce_max_by(
   current_val : Json,
   rest : ArrayView[Json],
 ) -> (Json, Json) raise InterpreterError {
-  match rest {
-    [] => (current_elem, current_val)
-    [elem, .. tail] =>
-      match eval_with_env(expr, elem, env).collect() {
-        [] => reduce_max_by(expr, env, current_elem, current_val, tail)
-        [val, ..] =>
-          if compare_json(val, current_val) > 0 {
-            reduce_max_by(expr, env, elem, val, tail)
-          } else {
-            reduce_max_by(expr, env, current_elem, current_val, tail)
-          }
-      }
+  let mut max_elem = current_elem
+  let mut max_val = current_val
+  for elem in rest {
+    match eval_with_env(expr, elem, env).collect() {
+      [] => ()
+      [val, ..] =>
+        if compare_json(val, max_val) > 0 {
+          max_elem = elem
+          max_val = val
+        }
+    }
   }
+  (max_elem, max_val)
 }
