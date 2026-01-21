@@ -53,42 +53,40 @@ fn eval_max(input : Json) -> Iter[Json] raise InterpreterError {
 
 ///|
 fn sum_numbers(arr : ArrayView[Json]) -> Double {
-  let mut total = 0.0
-  for value in arr {
+  arr.fold(init=0.0, fn(total, value) {
     match value {
-      Number(n, ..) => total = total + n
-      _ => ()
+      Number(n, ..) => total + n
+      _ => total
     }
-  }
-  total
+  })
 }
 
 ///|
 fn min_in_view(arr : ArrayView[Json]) -> Json? {
-  let mut min_val : Json? = None
-  for value in arr {
+  arr.fold(init=None, fn(min_val : Json?, value) {
     match min_val {
-      None => min_val = Some(value)
+      None => Some(value)
       Some(current) =>
         if compare_json(value, current) < 0 {
-          min_val = Some(value)
+          Some(value)
+        } else {
+          min_val
         }
     }
-  }
-  min_val
+  })
 }
 
 ///|
 fn max_in_view(arr : ArrayView[Json]) -> Json? {
-  let mut max_val : Json? = None
-  for value in arr {
+  arr.fold(init=None, fn(max_val : Json?, value) {
     match max_val {
-      None => max_val = Some(value)
+      None => Some(value)
       Some(current) =>
         if compare_json(value, current) > 0 {
-          max_val = Some(value)
+          Some(value)
+        } else {
+          max_val
         }
     }
-  }
-  max_val
+  })
 }
