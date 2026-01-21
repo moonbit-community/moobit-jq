@@ -25,16 +25,16 @@ fn eval_object_construct(
   for pair in pairs {
     let (key_expr, value_expr_opt) = pair
     // Evaluate key to get string
-    let key_results = eval_with_env(key_expr, input, env).collect()
-    match @ast_internal.first_opt(key_results) {
-      None => ()
-      Some(String(key_str)) => {
+    match eval_with_env(key_expr, input, env).collect() {
+      [] => ()
+      [String(key_str), ..] => {
         // Evaluate value or use key from input
         let value = match value_expr_opt {
-          Some(value_expr) => {
-            let value_results = eval_with_env(value_expr, input, env).collect()
-            @ast_internal.first_or_null(value_results)
-          }
+          Some(value_expr) =>
+            match eval_with_env(value_expr, input, env).collect() {
+              [first, ..] => first
+              [] => null
+            }
           None =>
             // Shorthand: {foo} means {foo: .foo}
             match input {
@@ -44,7 +44,7 @@ fn eval_object_construct(
         }
         obj[key_str] = value
       }
-      Some(other) =>
+      [other, ..] =>
         raise TypeMismatch("string", @ast_internal.json_type_name(other))
     }
   }

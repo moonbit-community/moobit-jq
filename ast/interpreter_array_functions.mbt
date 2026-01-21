@@ -28,10 +28,9 @@ fn eval_select(
   input : Json,
   env : Env,
 ) -> Iter[Json] raise InterpreterError {
-  let cond_results = eval_with_env(condition, input, env).collect()
-  match @ast_internal.first_opt(cond_results) {
-    None => Iter::empty()
-    Some(first) =>
+  match eval_with_env(condition, input, env).collect() {
+    [] => Iter::empty()
+    [first, ..] =>
       if @ast_internal.is_truthy(first) {
         Iter::singleton(input)
       } else {

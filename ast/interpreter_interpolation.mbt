@@ -10,14 +10,12 @@ fn eval_string_interpolation(
     let (text, expr_opt) = pair
     buf.write_string(text)
     match expr_opt {
-      Some(expr) => {
-        let results = eval_with_env(expr, input, env).collect()
-        match @ast_internal.first_opt(results) {
-          Some(String(s)) => buf.write_string(s)
-          Some(other) => buf.write_string(other.to_string())
-          None => ()
+      Some(expr) =>
+        match eval_with_env(expr, input, env).collect() {
+          [String(s), ..] => buf.write_string(s)
+          [other, ..] => buf.write_string(other.to_string())
+          [] => ()
         }
-      }
       None => ()
     }
   }
