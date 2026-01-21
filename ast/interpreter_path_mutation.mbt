@@ -100,15 +100,11 @@ fn eval_set_path(
 ) -> Iter[Json] raise InterpreterError {
   let path_results = eval_with_env(path_expr, input, env).collect()
   let value_results = eval_with_env(value_expr, input, env).collect()
-  if path_results.is_empty() || value_results.is_empty() {
-    return Iter::singleton(input)
-  }
-  match path_results[0] {
-    Array(path_arr) =>
-      if path_arr.is_empty() {
-        Iter::singleton(value_results[0])
-      } else {
-        Iter::singleton(set_at_path(input, path_arr[:], value_results[0]))
+  match (path_results, value_results) {
+    ([Array(path_arr), ..], [value, ..]) =>
+      match path_arr[:] {
+        [] => Iter::singleton(value)
+        path => Iter::singleton(set_at_path(input, path, value))
       }
     _ => Iter::singleton(input)
   }
@@ -121,12 +117,8 @@ fn eval_del_paths(
   input : Json,
   env : Env,
 ) -> Iter[Json] raise InterpreterError {
-  let paths_results = eval_with_env(paths_expr, input, env).collect()
-  if paths_results.is_empty() {
-    return Iter::singleton(input)
-  }
-  match paths_results[0] {
-    Array(paths_arr) =>
+  match eval_with_env(paths_expr, input, env).collect() {
+    [Array(paths_arr), ..] =>
       Iter::singleton(
         paths_arr.fold(init=input, fn(acc, path_json) {
           match path_json {

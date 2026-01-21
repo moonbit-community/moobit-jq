@@ -10,12 +10,12 @@ fn eval_foreach(
   env : Env,
 ) -> Iter[Json] raise InterpreterError {
   let gen_results = eval_with_env(gen_expr, input, env).collect()
-  let init_results = eval_with_env(init_expr, input, env).collect()
-  if init_results.is_empty() {
-    return Iter::empty()
+  let init_value = match eval_with_env(init_expr, input, env).collect() {
+    [] => return Iter::empty()
+    [first, ..] => first
   }
   let (_acc, results) : (Json, Array[Json]) = gen_results.fold(
-    init=(init_results[0], []),
+    init=(init_value, []),
     fn(state, gen_result) raise InterpreterError {
       let (acc, results) = state
       let new_env = env.extend(var_name, gen_result)

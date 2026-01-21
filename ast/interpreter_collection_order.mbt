@@ -10,13 +10,15 @@ fn eval_unique_by(
       let seen : Map[String, Bool] = {}
       let results : Array[Json] = []
       for elem in arr {
-        let key_results = eval_with_env(expr, elem, env).collect()
-        if not(key_results.is_empty()) {
-          let key = key_results[0].to_string()
-          if not(seen.contains(key)) {
-            seen[key] = true
-            results.push(elem)
+        match eval_with_env(expr, elem, env).collect() {
+          [first, ..] => {
+            let key = first.to_string()
+            if not(seen.contains(key)) {
+              seen[key] = true
+              results.push(elem)
+            }
           }
+          [] => ()
         }
       }
       Iter::singleton(Json::array(results))

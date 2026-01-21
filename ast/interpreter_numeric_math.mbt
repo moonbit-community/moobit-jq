@@ -5,13 +5,10 @@ fn eval_pow(
   input : Json,
   env : Env,
 ) -> Iter[Json] raise InterpreterError {
-  let exp_results = eval_with_env(exp_expr, input, env).collect()
-  if exp_results.is_empty() {
-    return Iter::singleton(null)
-  }
-  match (input, exp_results[0]) {
-    (Number(base, ..), Number(exp, ..)) =>
+  match (input, eval_with_env(exp_expr, input, env).collect()) {
+    (Number(base, ..), [Number(exp, ..), ..]) =>
       Iter::singleton(Json::number(@math.pow(base, exp)))
+    (_, []) => Iter::singleton(null)
     _ => raise TypeMismatch("number", @ast_internal.json_type_name(input))
   }
 }

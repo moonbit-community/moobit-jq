@@ -86,12 +86,11 @@ fn entry_from_pair(key : Json, value : Json) -> Json {
 fn entry_to_pair(entry : Json) -> (String, Json)? {
   match entry {
     Object(obj) => {
-      let key_opt = match obj.get("key") {
+      let key_opt : Json? = match obj.get("key") {
         Some(k) => Some(k)
         None => obj.get("name")
       }
-      let value_opt = obj.get("value")
-      match (key_opt, value_opt) {
+      match (key_opt, obj.get("value")) {
         (Some(String(key_str)), Some(v)) => Some((key_str, v))
         (Some(Number(n, ..)), Some(v)) => Some((n.to_int().to_string(), v))
         _ => None
@@ -109,12 +108,15 @@ fn eval_with_entries(
   env : Env,
 ) -> Iter[Json] raise InterpreterError {
   match input {
-    Object(_) | Array(_) => {
-      let entries_results = eval_with_env(ToEntries, input, env).collect()
-      let entries_array = entries_results[0]
-      let mapped_results = eval_with_env(Map(expr), entries_array, env).collect()
-      eval_with_env(FromEntries, mapped_results[0], env)
-    }
+    Object(_) | Array(_) =>
+      match eval_with_env(ToEntries, input, env).collect() {
+        [entries_array, ..] =>
+          match eval_with_env(Map(expr), entries_array, env).collect() {
+            [mapped, ..] => eval_with_env(FromEntries, mapped, env)
+            [] => Iter::empty()
+          }
+        [] => Iter::empty()
+      }
     _ => raise TypeMismatch("object/array", @ast_internal.json_type_name(input))
   }
 }

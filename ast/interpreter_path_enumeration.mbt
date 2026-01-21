@@ -148,14 +148,9 @@ fn filter_matches(value : Json, filter_expr : Expr, env : Env) -> Bool? {
   let filter_results = eval_with_env(filter_expr, value, env) catch {
     _ => return None
   }
-  let filter_results_arr = filter_results.collect()
-  if filter_results_arr.is_empty() {
-    Some(false)
-  } else {
-    match filter_results_arr[0] {
-      True => Some(true)
-      _ => Some(false)
-    }
+  match filter_results.collect() {
+    [True, ..] => Some(true)
+    _ => Some(false)
   }
 }
 
