@@ -13,13 +13,8 @@ fn eval_indices_of(
           Iter::singleton(Json::array(indices_of_array(arr, needle)))
         String(s) =>
           match needle {
-            String(substr) => {
-              let indices : Array[Json] = []
-              if s.contains(substr) {
-                ()
-              }
-              Iter::singleton(Json::array(indices))
-            }
+            String(substr) =>
+              Iter::singleton(Json::array(indices_of_string(s, substr)))
             _ => Iter::singleton(Json::array([]))
           }
         _ =>
@@ -50,10 +45,13 @@ fn eval_index_of(
         String(s) =>
           match needle {
             String(substr) =>
-              if s.contains(substr) {
-                Iter::singleton(Json::number(0.0))
-              } else {
+              if substr.length() == 0 {
                 Iter::singleton(null)
+              } else {
+                match s.find(substr) {
+                  Some(pos) => Iter::singleton(Json::number(pos.to_double()))
+                  None => Iter::singleton(null)
+                }
               }
             _ => Iter::singleton(null)
           }
@@ -145,4 +143,25 @@ fn find_last_index(arr : ArrayView[Json], needle : Json) -> Int? {
     }
   }
   found
+}
+
+///|
+fn indices_of_string(s : String, substr : String) -> Array[Json] {
+  let result : Array[Json] = []
+  let slen = s.length()
+  let substr_len = substr.length()
+  guard substr_len > 0 else { return result }
+  let mut pos = 0
+  while pos <= slen - substr_len {
+    let slice = s[pos:].to_string() catch { _ => break }
+    match slice.find(substr) {
+      Some(idx) => {
+        let actual_idx = pos + idx
+        result.push(Json::number(actual_idx.to_double()))
+        pos = actual_idx + 1 // Advance by 1 to find overlapping matches
+      }
+      None => break
+    }
+  }
+  result
 }
