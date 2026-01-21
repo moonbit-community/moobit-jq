@@ -69,16 +69,15 @@ fn eval_index_of(
 ///|
 /// Evaluate nth
 fn eval_nth(n : Int, input : Json) -> Iter[Json] raise InterpreterError {
-  match input {
-    Array(arr) =>
-      if n >= 0 && n < arr.length() {
-        Iter::singleton(arr[n])
-      } else if n < 0 && -n <= arr.length() {
-        Iter::singleton(arr[arr.length() + n])
-      } else {
-        Iter::empty()
-      }
-    _ => raise TypeMismatch("array", @ast_internal.json_type_name(input))
+  guard input is Array(arr) else {
+    raise TypeMismatch("array", @ast_internal.json_type_name(input))
+  }
+  if n >= 0 && n < arr.length() {
+    Iter::singleton(arr[n])
+  } else if n < 0 && -n <= arr.length() {
+    Iter::singleton(arr[arr.length() + n])
+  } else {
+    Iter::empty()
   }
 }
 
