@@ -42,24 +42,23 @@ fn eval_format(
       match input {
         Array(arr) => {
           let sep = if format_name == "csv" { "," } else { "\t" }
-          let parts : Array[String] = []
-          for item in arr {
+          let parts = arr.map(fn(item) {
             match item {
               String(s) =>
                 // Quote if contains separator or quotes
                 if s.contains(sep) || s.contains("\"") {
                   let escaped = s.replace(old="\"", new="\"\"")
-                  parts.push("\"\{escaped}\"")
+                  "\"\{escaped}\""
                 } else {
-                  parts.push(s)
+                  s
                 }
-              Number(n, ..) => parts.push(n.to_string())
-              True => parts.push("true")
-              False => parts.push("false")
-              Null => parts.push("")
-              _ => parts.push(item.to_string())
+              Number(n, ..) => n.to_string()
+              True => "true"
+              False => "false"
+              Null => ""
+              _ => item.to_string()
             }
-          }
+          })
           Iter::singleton(Json::string(parts.join(sep)))
         }
         _ => raise TypeError("@csv/@tsv requires array")
