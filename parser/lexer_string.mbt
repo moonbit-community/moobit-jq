@@ -122,7 +122,7 @@ fn Lexer::lex_string(self : Lexer) -> Unit raise LexError {
       }
   }
   parts.push((buf.to_string(), None))
-  if parts.length() == 1 && parts[0].1 == None {
+  if parts.length() == 1 && parts[0].1 is None {
     self.add_token(TString(parts[0].0))
   } else {
     self.add_token(TStringInterpolation(parts))
