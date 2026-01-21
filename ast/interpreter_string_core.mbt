@@ -49,23 +49,17 @@ fn eval_ends_with(
 
 ///|
 fn string_views_to_json(parts : ArrayView[StringView]) -> Array[Json] {
-  let results : Array[Json] = []
-  for part in parts {
-    results.push(Json::string(part.to_string()))
-  }
-  results
+  parts.map(fn(part) { Json::string(part.to_string()) })
 }
 
 ///|
 fn json_to_strings(parts : ArrayView[Json]) -> Array[String] {
-  let results : Array[String] = []
-  for part in parts {
+  parts.map(fn(part) {
     match part {
-      String(s) => results.push(s)
-      _ => results.push(part.to_string())
+      String(s) => s
+      _ => part.to_string()
     }
-  }
-  results
+  })
 }
 
 ///|
@@ -82,10 +76,7 @@ fn array_contains_all(
 }
 
 ///|
-fn json_contains(
-  container : Json,
-  item : Json,
-) -> Bool {
+fn json_contains(container : Json, item : Json) -> Bool {
   match (container, item) {
     (String(haystack), String(n)) => haystack.contains(n)
     (Array(haystack), _) => array_contains_view(haystack[:], item)
@@ -103,8 +94,7 @@ fn eval_contains(
 ) -> Iter[Json] raise InterpreterError {
   match eval_with_env(expr, input, env).collect() {
     [] => Iter::singleton(Json::boolean(false))
-    [needle, ..] =>
-      Iter::singleton(Json::boolean(json_contains(input, needle)))
+    [needle, ..] => Iter::singleton(Json::boolean(json_contains(input, needle)))
   }
 }
 

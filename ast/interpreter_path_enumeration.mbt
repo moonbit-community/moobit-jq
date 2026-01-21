@@ -144,11 +144,7 @@ fn iter_paths(
 }
 
 ///|
-fn filter_matches(
-  value : Json,
-  filter_expr : Expr,
-  env : Env,
-) -> Bool? {
+fn filter_matches(value : Json, filter_expr : Expr, env : Env) -> Bool? {
   let filter_results = eval_with_env(filter_expr, value, env) catch {
     _ => return None
   }
@@ -208,7 +204,11 @@ fn iter_paths_with_filter(
                       continue
                     }
                     Some(matches) => {
-                      let pushed = push_container_frame(stack_ref.val, val, true)
+                      let pushed = push_container_frame(
+                        stack_ref.val,
+                        val,
+                        true,
+                      )
                       if matches {
                         let result = Json::array(path.copy())
                         if not(pushed) {
@@ -246,7 +246,11 @@ fn iter_paths_with_filter(
                     continue
                   }
                   Some(matches) => {
-                    let pushed = push_container_frame(stack_ref.val, value, true)
+                    let pushed = push_container_frame(
+                      stack_ref.val,
+                      value,
+                      true,
+                    )
                     if matches {
                       let result = Json::array(path.copy())
                       if not(pushed) {

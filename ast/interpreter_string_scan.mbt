@@ -70,11 +70,11 @@ fn scan_matches(
   let last = slen - plen
   while pos <= last {
     let slice_result = s[pos:pos + plen] catch {
-      _ => {
-        pos = pos + 1
-        continue
+        _ => {
+          pos = pos + 1
+          continue
+        }
       }
-    }
     if slice_result == pattern_view {
       results.push(Json::string(pattern))
       pos = pos + plen

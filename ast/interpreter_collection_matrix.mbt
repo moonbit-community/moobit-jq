@@ -62,10 +62,7 @@ fn max_row_len(rows : ArrayView[Json]) -> Int {
   let mut max_len = 0
   for row in rows {
     match row {
-      Array(inner) =>
-        if inner.length() > max_len {
-          max_len = inner.length()
-        }
+      Array(inner) => if inner.length() > max_len { max_len = inner.length() }
       _ => ()
     }
   }
@@ -73,19 +70,13 @@ fn max_row_len(rows : ArrayView[Json]) -> Int {
 }
 
 ///|
-fn build_columns(
-  rows : ArrayView[Json],
-  max_len : Int,
-) -> Array[Array[Json]] {
+fn build_columns(rows : ArrayView[Json], max_len : Int) -> Array[Array[Json]] {
   let columns : Array[Array[Json]] = []
   for col in 0..<max_len {
     let column : Array[Json] = []
     for row in rows {
       match row {
-        Array(inner) =>
-          if col < inner.length() {
-            column.push(inner[col])
-          }
+        Array(inner) => if col < inner.length() { column.push(inner[col]) }
         _ => ()
       }
     }

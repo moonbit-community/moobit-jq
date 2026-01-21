@@ -1,6 +1,10 @@
 ///|
 fn normalize_index(idx : Int, len : Int) -> Int {
-  if idx < 0 { len + idx } else { idx }
+  if idx < 0 {
+    len + idx
+  } else {
+    idx
+  }
 }
 
 ///|
