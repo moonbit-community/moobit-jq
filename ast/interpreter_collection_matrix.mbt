@@ -59,14 +59,12 @@ fn cartesian_product(arrays : ArrayView[Array[Json]]) -> Array[Array[Json]] {
 
 ///|
 fn max_row_len(rows : ArrayView[Json]) -> Int {
-  let mut max_len = 0
-  for row in rows {
+  rows.fold(init=0, fn(max_len, row) {
     match row {
-      Array(inner) => if inner.length() > max_len { max_len = inner.length() }
-      _ => ()
+      Array(inner) => @cmp.maximum(max_len, inner.length())
+      _ => max_len
     }
-  }
-  max_len
+  })
 }
 
 ///|

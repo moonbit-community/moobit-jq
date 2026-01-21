@@ -2,6 +2,7 @@
   "import": [
     { "path": "bobzhang/moonjq/ast/internal/helpers", "alias": "ast_internal" },
     "moonbitlang/core/buffer",
+    "moonbitlang/core/cmp",
     { "path": "moonbitlang/core/encoding/utf8", "alias": "encoding/utf8" },
     "moonbitlang/core/json",
     "moonbitlang/core/math",
