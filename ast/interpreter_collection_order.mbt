@@ -5,26 +5,24 @@ fn eval_unique_by(
   input : Json,
   env : Env,
 ) -> Iter[Json] raise InterpreterError {
-  match input {
-    Array(arr) => {
-      let seen : Map[String, Bool] = {}
-      let results : Array[Json] = []
-      for elem in arr {
-        match eval_with_env(expr, elem, env).collect() {
-          [first, ..] => {
-            let key = first.to_string()
-            if not(seen.contains(key)) {
-              seen[key] = true
-              results.push(elem)
-            }
-          }
-          [] => ()
+  guard input is Array(arr) else {
+    raise TypeMismatch("array", @ast_internal.json_type_name(input))
+  }
+  let seen : Map[String, Bool] = {}
+  let results : Array[Json] = []
+  for elem in arr {
+    match eval_with_env(expr, elem, env).collect() {
+      [first, ..] => {
+        let key = first.to_string()
+        if not(seen.contains(key)) {
+          seen[key] = true
+          results.push(elem)
         }
       }
-      Iter::singleton(Json::array(results))
+      [] => ()
     }
-    _ => raise TypeMismatch("array", @ast_internal.json_type_name(input))
   }
+  Iter::singleton(Json::array(results))
 }
 
 ///|
@@ -34,14 +32,10 @@ fn eval_min_by(
   input : Json,
   env : Env,
 ) -> Iter[Json] raise InterpreterError {
-  match input {
-    Array(arr) =>
-      match pick_min_by(expr, env, arr[:]) {
-        Some(elem) => Iter::singleton(elem)
-        None => Iter::singleton(null)
-      }
-    _ => raise TypeMismatch("array", @ast_internal.json_type_name(input))
+  guard input is Array(arr) else {
+    raise TypeMismatch("array", @ast_internal.json_type_name(input))
   }
+  Iter::singleton(pick_min_by(expr, env, arr[:]).unwrap_or(null))
 }
 
 ///|
@@ -51,14 +45,10 @@ fn eval_max_by(
   input : Json,
   env : Env,
 ) -> Iter[Json] raise InterpreterError {
-  match input {
-    Array(arr) =>
-      match pick_max_by(expr, env, arr[:]) {
-        Some(elem) => Iter::singleton(elem)
-        None => Iter::singleton(null)
-      }
-    _ => raise TypeMismatch("array", @ast_internal.json_type_name(input))
+  guard input is Array(arr) else {
+    raise TypeMismatch("array", @ast_internal.json_type_name(input))
   }
+  Iter::singleton(pick_max_by(expr, env, arr[:]).unwrap_or(null))
 }
 
 ///|

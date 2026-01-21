@@ -1,54 +1,46 @@
 ///|
 /// Evaluate array sum
 fn eval_add(input : Json) -> Iter[Json] raise InterpreterError {
-  match input {
-    Array(arr) => Iter::singleton(Json::number(sum_numbers(arr[:])))
-    _ => raise TypeMismatch("array", @ast_internal.json_type_name(input))
+  guard input is Array(arr) else {
+    raise TypeMismatch("array", @ast_internal.json_type_name(input))
   }
+  Iter::singleton(Json::number(sum_numbers(arr[:])))
 }
 
 ///|
 /// Evaluate floor
 fn eval_floor(input : Json) -> Iter[Json] raise InterpreterError {
-  match input {
-    Number(n, ..) => Iter::singleton(Json::number(n.floor()))
-    _ => raise TypeMismatch("number", @ast_internal.json_type_name(input))
+  guard input is Number(n, ..) else {
+    raise TypeMismatch("number", @ast_internal.json_type_name(input))
   }
+  Iter::singleton(Json::number(n.floor()))
 }
 
 ///|
 /// Evaluate square root
 fn eval_sqrt(input : Json) -> Iter[Json] raise InterpreterError {
-  match input {
-    Number(n, ..) => Iter::singleton(Json::number(n.sqrt()))
-    _ => raise TypeMismatch("number", @ast_internal.json_type_name(input))
+  guard input is Number(n, ..) else {
+    raise TypeMismatch("number", @ast_internal.json_type_name(input))
   }
+  Iter::singleton(Json::number(n.sqrt()))
 }
 
 ///|
 /// Evaluate minimum over array
 fn eval_min(input : Json) -> Iter[Json] raise InterpreterError {
-  match input {
-    Array(arr) =>
-      match min_in_view(arr[:]) {
-        Some(val) => Iter::singleton(val)
-        None => Iter::singleton(null)
-      }
-    _ => raise TypeMismatch("array", @ast_internal.json_type_name(input))
+  guard input is Array(arr) else {
+    raise TypeMismatch("array", @ast_internal.json_type_name(input))
   }
+  Iter::singleton(min_in_view(arr[:]).unwrap_or(null))
 }
 
 ///|
 /// Evaluate maximum over array
 fn eval_max(input : Json) -> Iter[Json] raise InterpreterError {
-  match input {
-    Array(arr) =>
-      match max_in_view(arr[:]) {
-        Some(val) => Iter::singleton(val)
-        None => Iter::singleton(null)
-      }
-    _ => raise TypeMismatch("array", @ast_internal.json_type_name(input))
+  guard input is Array(arr) else {
+    raise TypeMismatch("array", @ast_internal.json_type_name(input))
   }
+  Iter::singleton(max_in_view(arr[:]).unwrap_or(null))
 }
 
 ///|

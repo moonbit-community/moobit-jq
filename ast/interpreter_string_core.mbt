@@ -1,26 +1,22 @@
 ///|
 /// Evaluate string split
 fn eval_split(sep : String, input : Json) -> Iter[Json] raise InterpreterError {
-  match input {
-    String(s) => {
-      let parts = s.split(sep).collect()
-      let json_parts = string_views_to_json(parts[:])
-      Iter::singleton(Json::array(json_parts))
-    }
-    _ => raise TypeMismatch("string", @ast_internal.json_type_name(input))
+  guard input is String(s) else {
+    raise TypeMismatch("string", @ast_internal.json_type_name(input))
   }
+  let parts = s.split(sep).collect()
+  let json_parts = string_views_to_json(parts[:])
+  Iter::singleton(Json::array(json_parts))
 }
 
 ///|
 /// Evaluate string join
 fn eval_join(sep : String, input : Json) -> Iter[Json] raise InterpreterError {
-  match input {
-    Array(arr) => {
-      let parts = json_to_strings(arr[:])
-      Iter::singleton(Json::string(parts.join(sep)))
-    }
-    _ => raise TypeMismatch("array", @ast_internal.json_type_name(input))
+  guard input is Array(arr) else {
+    raise TypeMismatch("array", @ast_internal.json_type_name(input))
   }
+  let parts = json_to_strings(arr[:])
+  Iter::singleton(Json::string(parts.join(sep)))
 }
 
 ///|
@@ -29,10 +25,10 @@ fn eval_starts_with(
   prefix : String,
   input : Json,
 ) -> Iter[Json] raise InterpreterError {
-  match input {
-    String(s) => Iter::singleton(Json::boolean(s.has_prefix(prefix)))
-    _ => raise TypeMismatch("string", @ast_internal.json_type_name(input))
+  guard input is String(s) else {
+    raise TypeMismatch("string", @ast_internal.json_type_name(input))
   }
+  Iter::singleton(Json::boolean(s.has_prefix(prefix)))
 }
 
 ///|
@@ -41,10 +37,10 @@ fn eval_ends_with(
   suffix : String,
   input : Json,
 ) -> Iter[Json] raise InterpreterError {
-  match input {
-    String(s) => Iter::singleton(Json::boolean(s.has_suffix(suffix)))
-    _ => raise TypeMismatch("string", @ast_internal.json_type_name(input))
+  guard input is String(s) else {
+    raise TypeMismatch("string", @ast_internal.json_type_name(input))
   }
+  Iter::singleton(Json::boolean(s.has_suffix(suffix)))
 }
 
 ///|
