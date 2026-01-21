@@ -10,7 +10,7 @@ fn eval_indices_of(
     [needle, ..] =>
       match input {
         Array(arr) =>
-          Iter::singleton(Json::array(indices_of_array(arr[:], needle, 0)))
+          Iter::singleton(Json::array(indices_of_array(arr[:], needle)))
         String(s) =>
           match needle {
             String(substr) => {
@@ -43,7 +43,7 @@ fn eval_index_of(
     [needle, ..] =>
       match input {
         Array(arr) =>
-          match find_first_index(arr[:], needle, 0) {
+          match find_first_index(arr[:], needle) {
             Some(idx) => Iter::singleton(Json::number(idx.to_double()))
             None => Iter::singleton(null)
           }
@@ -94,7 +94,7 @@ fn eval_rindex(
     [needle, ..] =>
       match input {
         Array(arr) =>
-          match find_last_index(arr[:], needle, 0) {
+          match find_last_index(arr[:], needle) {
             Some(idx) => Iter::singleton(Json::number(idx.to_double()))
             None => Iter::singleton(null)
           }
@@ -117,43 +117,33 @@ fn eval_rindex(
 }
 
 ///|
-fn indices_of_array(
-  arr : ArrayView[Json],
-  needle : Json,
-  offset : Int,
-) -> Array[Json] {
+fn indices_of_array(arr : ArrayView[Json], needle : Json) -> Array[Json] {
   let result : Array[Json] = []
-  let mut idx = offset
-  for value in arr {
-    if value == needle {
-      result.push(Json::number(idx.to_double()))
+  for i in 0..<arr.length() {
+    if arr[i] == needle {
+      result.push(Json::number(i.to_double()))
     }
-    idx = idx + 1
   }
   result
 }
 
 ///|
-fn find_first_index(arr : ArrayView[Json], needle : Json, offset : Int) -> Int? {
-  let mut idx = offset
-  for value in arr {
-    if value == needle {
-      return Some(idx)
+fn find_first_index(arr : ArrayView[Json], needle : Json) -> Int? {
+  for i in 0..<arr.length() {
+    if arr[i] == needle {
+      return Some(i)
     }
-    idx = idx + 1
   }
   None
 }
 
 ///|
-fn find_last_index(arr : ArrayView[Json], needle : Json, offset : Int) -> Int? {
-  let mut idx = offset
+fn find_last_index(arr : ArrayView[Json], needle : Json) -> Int? {
   let mut found : Int? = None
-  for value in arr {
-    if value == needle {
-      found = Some(idx)
+  for i in 0..<arr.length() {
+    if arr[i] == needle {
+      found = Some(i)
     }
-    idx = idx + 1
   }
   found
 }

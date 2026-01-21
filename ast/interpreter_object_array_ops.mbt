@@ -48,10 +48,10 @@ fn eval_in(
 fn eval_to_entries(input : Json) -> Iter[Json] raise InterpreterError {
   match input {
     Object(obj) => {
-      let entries : Array[Json] = []
-      for k, v in obj {
-        entries.push(entry_from_pair(Json::string(k), v))
-      }
+      let entries = obj
+        .iter()
+        .map(fn(pair) { entry_from_pair(Json::string(pair.0), pair.1) })
+        .collect()
       Iter::singleton(Json::array(entries))
     }
     Array(arr) =>
