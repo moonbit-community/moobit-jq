@@ -81,11 +81,9 @@ fn eval_walk(
       Array(arr) => {
         let walked = arr.map(walk_value)
         let wrapped = Json::array(walked)
-        let results = eval_with_env(f, wrapped, env).collect()
-        if results.is_empty() {
-          wrapped
-        } else {
-          results[0]
+        match eval_with_env(f, wrapped, env).collect() {
+          [first, ..] => first
+          [] => wrapped
         }
       }
       Object(obj) => {
@@ -94,21 +92,16 @@ fn eval_walk(
           walked[k] = walk_value(v)
         }
         let wrapped = Json::object(walked)
-        let results = eval_with_env(f, wrapped, env).collect()
-        if results.is_empty() {
-          wrapped
-        } else {
-          results[0]
+        match eval_with_env(f, wrapped, env).collect() {
+          [first, ..] => first
+          [] => wrapped
         }
       }
-      _ => {
-        let results = eval_with_env(f, v, env).collect()
-        if results.is_empty() {
-          v
-        } else {
-          results[0]
+      _ =>
+        match eval_with_env(f, v, env).collect() {
+          [first, ..] => first
+          [] => v
         }
-      }
     }
   }
 

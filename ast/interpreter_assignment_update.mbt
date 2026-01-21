@@ -33,7 +33,7 @@ fn eval_update(
           _ => obj
         }
       Index(indices) =>
-        match (obj, indices[:]) {
+        match (obj, indices) {
           (Array(arr), [idx]) =>
             if idx < 0 || idx >= arr.length() {
               obj
@@ -64,7 +64,7 @@ fn eval_update(
               _ => obj
             }
           Index(indices) =>
-            match (obj, indices[:]) {
+            match (obj, indices) {
               (Array(arr), [idx]) =>
                 if idx < 0 || idx >= arr.length() {
                   obj

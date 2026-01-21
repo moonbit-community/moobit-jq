@@ -102,7 +102,7 @@ fn eval_set_path(
   let value_results = eval_with_env(value_expr, input, env).collect()
   match (path_results, value_results) {
     ([Array(path_arr), ..], [value, ..]) =>
-      match path_arr[:] {
+      match path_arr {
         [] => Iter::singleton(value)
         _ => Iter::singleton(set_at_path(input, path_arr, value))
       }

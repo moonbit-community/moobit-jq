@@ -17,22 +17,23 @@ fn eval_function_call(
 ) -> Iter[Json] raise InterpreterError {
   match env.get_function(name) {
     Some((body, params)) =>
-      if params.is_empty() {
-        eval_with_env(body, input, env)
-      } else if args.length() != params.length() {
-        raise EvalError(
-          "Function \{name} expects \{params.length()} arguments, got \{args.length()}",
-        )
-      } else {
-        let arg_values = args.map(fn(arg) raise InterpreterError {
-          let results = eval_with_env(arg, input, env).collect()
-          match results {
-            [] => null
-            [first, ..] => first
+      match params {
+        [] => eval_with_env(body, input, env)
+        _ =>
+          if args.length() != params.length() {
+            raise EvalError(
+              "Function \{name} expects \{params.length()} arguments, got \{args.length()}",
+            )
+          } else {
+            let arg_values = args.map(fn(arg) raise InterpreterError {
+              match eval_with_env(arg, input, env).collect() {
+                [] => null
+                [first, ..] => first
+              }
+            })
+            let new_env = bind_params(env, params, arg_values)
+            eval_with_env(body, input, new_env)
           }
-        })
-        let new_env = bind_params(env, params, arg_values)
-        eval_with_env(body, input, new_env)
       }
     None => raise EvalError("Undefined function: \{name}")
   }

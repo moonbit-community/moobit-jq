@@ -14,7 +14,7 @@ fn eval_first(input : Json) -> Iter[Json] raise InterpreterError {
   guard input is Array(arr) else {
     raise TypeMismatch("array", @ast_internal.json_type_name(input))
   }
-  match arr[:] {
+  match arr {
     [first, ..] => Iter::singleton(first)
     [] => Iter::empty()
   }

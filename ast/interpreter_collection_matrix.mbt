@@ -6,7 +6,7 @@ fn eval_combinations(input : Json) -> Iter[Json] raise InterpreterError {
       match collect_arrays(arr) {
         None => Iter::empty()
         Some(arrays) =>
-          match arrays[:] {
+          match arrays {
             [] => Iter::empty()
             _ => cartesian_product(arrays).iter().map(Json::array)
           }

@@ -33,7 +33,7 @@ fn eval_repeat(
   env : Env,
 ) -> Iter[Json] raise InterpreterError {
   let values = eval_with_env(expr, input, env).collect()
-  guard not(values.is_empty()) else { Iter::empty() }
+  guard values is [_, ..] else { return Iter::empty() }
   let len = values.length()
   let idx : Ref[Int] = Ref::new(0)
   Iter::new(fn() {

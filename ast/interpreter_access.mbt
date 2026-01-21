@@ -45,7 +45,7 @@ fn eval_key_access(key : String, input : Json) -> Iter[Json] {
 ///|
 /// Evaluate array indexing and iteration
 fn eval_index_access(indices : Array[Int], input : Json) -> Iter[Json] {
-  match indices[:] {
+  match indices {
     [] =>
       // Empty index means iterate over array/object values
       match input {

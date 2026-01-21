@@ -12,14 +12,14 @@ test "api: parse succeeds" {
 ///|
 test "api: eval streams results" {
   let query = @moonjq.parse(".a")
-  let input = @json.parse("{\"a\": 1}"[:])
+  let input = @json.parse("{\"a\": 1}")
   json_inspect(collect(@moonjq.eval(query, input)), content=[1])
 }
 
 ///|
 test "api: eval_all collects results" {
   let query = @moonjq.parse(".a")
-  let input = @json.parse("{\"a\": 1}"[:])
+  let input = @json.parse("{\"a\": 1}")
   json_inspect(@moonjq.eval_all(query, input), content=[1])
 }
 
@@ -31,7 +31,7 @@ test "api: run parses strings and collects" {
 ///|
 test "api: run_json reuses compiled query" {
   let query = @moonjq.parse(".a")
-  let json = @json.parse("{\"a\": 2}"[:])
+  let json = @json.parse("{\"a\": 2}")
   json_inspect(@moonjq.run_json(query, json), content=[2])
 }
 

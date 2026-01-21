@@ -20,7 +20,7 @@ pub fn eval_all(query : Query, input : Json) -> Array[Json] raise {
 /// Parse + evaluate a jq query against a JSON string input, collecting results.
 pub fn run(query : String, input : String) -> Array[Json] raise {
   let compiled = parse(query)
-  let json = @json.parse(input[:])
+  let json = @json.parse(input)
   compiled.eval_all(json)
 }
 

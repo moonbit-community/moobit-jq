@@ -20,11 +20,8 @@ pub fn Query::eval_all(self : Query, input : Json) -> Array[Json] raise {
 pub fn Query::eval_logs(self : Query, logs : String) -> Iter[Json] raise {
   let aggregated : Array[Json] = []
   for raw_line in logs.split("\n") {
-    let line = match raw_line.strip_suffix("\r"[:]) {
-      Some(rest) => rest
-      None => raw_line
-    }
-    if line.length() == 0 {
+    let line = raw_line.strip_suffix("\r").unwrap_or(raw_line)
+    if line == "" {
       continue
     }
     let json_value = @json.parse(line) catch { _ => continue }
