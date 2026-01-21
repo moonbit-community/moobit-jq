@@ -1,10 +1,10 @@
 ///|
 /// Evaluate variable lookup
 fn eval_variable(name : String, env : Env) -> Iter[Json] raise InterpreterError {
-  match env.get(name) {
-    Some(v) => Iter::singleton(v)
-    None => raise InvalidOperation("Undefined variable: $\{name}")
+  guard env.get(name) is Some(v) else {
+    raise InvalidOperation("Undefined variable: $\{name}")
   }
+  Iter::singleton(v)
 }
 
 ///|

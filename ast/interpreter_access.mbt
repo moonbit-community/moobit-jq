@@ -68,28 +68,18 @@ fn eval_index_access(indices : Array[Int], input : Json) -> Iter[Json] {
 ///|
 /// Evaluate array slicing
 fn eval_slice_access(start : Int?, end : Int?, input : Json) -> Iter[Json] {
-  match input {
-    Array(arr) => {
-      let len = arr.length()
-      let s = match start {
-        Some(n) => normalize_index(n, len)
-        None => 0
-      }
-      let e = match end {
-        Some(n) => normalize_index(n, len)
-        None => len
-      }
-      let s_clamped = clamp_index(s, len)
-      let e_clamped = clamp_index(e, len)
-      let sliced = if s_clamped >= e_clamped {
-        []
-      } else {
-        arr[s_clamped:e_clamped].to_array()
-      }
-      Iter::singleton(Json::array(sliced))
-    }
-    _ => Iter::singleton(null)
+  guard input is Array(arr) else { return Iter::singleton(null) }
+  let len = arr.length()
+  let s = start.map(fn(n) { normalize_index(n, len) }).unwrap_or(0)
+  let e = end.map(fn(n) { normalize_index(n, len) }).unwrap_or(len)
+  let s_clamped = clamp_index(s, len)
+  let e_clamped = clamp_index(e, len)
+  let sliced = if s_clamped >= e_clamped {
+    []
+  } else {
+    arr[s_clamped:e_clamped].to_array()
   }
+  Iter::singleton(Json::array(sliced))
 }
 
 ///|

@@ -21,12 +21,9 @@ fn eval_with_env(
     // Pipe: feed results of left into right
     Pipe(left, right) => {
       // Special case: if left is a function definition, update env
-      match left {
-        FunctionDef(name, params, body) => {
-          let new_env = env.set_function(name, body, params)
-          return eval_with_env(right, input, new_env)
-        }
-        _ => ()
+      if left is FunctionDef(name, params, body) {
+        let new_env = env.set_function(name, body, params)
+        return eval_with_env(right, input, new_env)
       }
       let left_results = eval_with_env(left, input, env).collect()
       let right_iters : Array[Iter[Json]] = []

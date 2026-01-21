@@ -22,20 +22,18 @@ fn push_container_frame(
 ) -> Bool {
   match value {
     Object(obj) =>
-      match obj.length() {
-        0 => false
-        _ => {
-          stack.push(ObjectFrame(obj.iter2(), has_segment))
-          true
-        }
+      if obj.is_empty() {
+        false
+      } else {
+        stack.push(ObjectFrame(obj.iter2(), has_segment))
+        true
       }
     Array(arr) =>
-      match arr {
-        [] => false
-        _ => {
-          stack.push(ArrayFrame(arr, 0, arr.length(), has_segment))
-          true
-        }
+      if arr.is_empty() {
+        false
+      } else {
+        stack.push(ArrayFrame(arr, 0, arr.length(), has_segment))
+        true
       }
     _ => false
   }
