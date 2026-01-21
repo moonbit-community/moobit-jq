@@ -7,47 +7,39 @@ fn Parser::parse_builtin_string_core(
   match name {
     "split" => {
       self.expect(TLParen)
-      match self.current() {
-        Some(TString(sep)) => {
-          self.advance()
-          self.expect(TRParen)
-          Some(@ast.Expr::Split(sep))
-        }
-        _ => raise InvalidSyntax("split expects string argument")
+      guard self.current() is Some(TString(sep)) else {
+        raise InvalidSyntax("split expects string argument")
       }
+      self.advance()
+      self.expect(TRParen)
+      Some(@ast.Expr::Split(sep))
     }
     "join" => {
       self.expect(TLParen)
-      match self.current() {
-        Some(TString(sep)) => {
-          self.advance()
-          self.expect(TRParen)
-          Some(@ast.Expr::Join(sep))
-        }
-        _ => raise InvalidSyntax("join expects string argument")
+      guard self.current() is Some(TString(sep)) else {
+        raise InvalidSyntax("join expects string argument")
       }
+      self.advance()
+      self.expect(TRParen)
+      Some(@ast.Expr::Join(sep))
     }
     "startswith" => {
       self.expect(TLParen)
-      match self.current() {
-        Some(TString(prefix)) => {
-          self.advance()
-          self.expect(TRParen)
-          Some(@ast.Expr::StartsWith(prefix))
-        }
-        _ => raise InvalidSyntax("startswith expects string argument")
+      guard self.current() is Some(TString(prefix)) else {
+        raise InvalidSyntax("startswith expects string argument")
       }
+      self.advance()
+      self.expect(TRParen)
+      Some(@ast.Expr::StartsWith(prefix))
     }
     "endswith" => {
       self.expect(TLParen)
-      match self.current() {
-        Some(TString(suffix)) => {
-          self.advance()
-          self.expect(TRParen)
-          Some(@ast.Expr::EndsWith(suffix))
-        }
-        _ => raise InvalidSyntax("endswith expects string argument")
+      guard self.current() is Some(TString(suffix)) else {
+        raise InvalidSyntax("endswith expects string argument")
       }
+      self.advance()
+      self.expect(TRParen)
+      Some(@ast.Expr::EndsWith(suffix))
     }
     "contains" => {
       self.expect(TLParen)

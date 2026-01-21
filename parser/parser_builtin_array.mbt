@@ -21,17 +21,14 @@ fn Parser::parse_builtin_array(
     "reverse" => Some(@ast.Expr::Reverse)
     "flatten" =>
       if self.consume(TLParen) {
-        match self.current() {
-          Some(TNumber(n)) => {
-            self.advance()
-            self.expect(TRParen)
-            Some(@ast.Expr::Flatten(Some(n.to_int())))
-          }
-          _ => {
-            self.expect(TRParen)
-            Some(@ast.Expr::Flatten(None))
-          }
+        let depth = if self.current() is Some(TNumber(n)) {
+          self.advance()
+          Some(n.to_int())
+        } else {
+          None
         }
+        self.expect(TRParen)
+        Some(@ast.Expr::Flatten(depth))
       } else {
         Some(@ast.Expr::Flatten(None))
       }
@@ -70,14 +67,12 @@ fn Parser::parse_builtin_array(
     }
     "nth" => {
       self.expect(TLParen)
-      match self.current() {
-        Some(TNumber(n)) => {
-          self.advance()
-          self.expect(TRParen)
-          Some(@ast.Expr::Nth(n.to_int()))
-        }
-        _ => raise InvalidSyntax("nth expects number argument")
+      guard self.current() is Some(TNumber(n)) else {
+        raise InvalidSyntax("nth expects number argument")
       }
+      self.advance()
+      self.expect(TRParen)
+      Some(@ast.Expr::Nth(n.to_int()))
     }
     "rindex" => {
       self.expect(TLParen)

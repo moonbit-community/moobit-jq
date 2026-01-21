@@ -4,20 +4,17 @@ fn Parser::parse_builtin_flow(
   self : Parser,
   name : String,
 ) -> @ast.Expr? raise ParseError {
-  match self.parse_builtin_flow_range(name) {
-    Some(expr) => Some(expr)
-    None =>
-      match self.parse_builtin_flow_predicates(name) {
-        Some(expr) => Some(expr)
-        None =>
-          match self.parse_builtin_flow_control(name) {
-            Some(expr) => Some(expr)
-            None =>
-              match self.parse_builtin_flow_reduce(name) {
-                Some(expr) => Some(expr)
-                None => self.parse_builtin_flow_traversal(name)
-              }
-          }
-      }
+  if self.parse_builtin_flow_range(name) is Some(expr) {
+    return Some(expr)
   }
+  if self.parse_builtin_flow_predicates(name) is Some(expr) {
+    return Some(expr)
+  }
+  if self.parse_builtin_flow_control(name) is Some(expr) {
+    return Some(expr)
+  }
+  if self.parse_builtin_flow_reduce(name) is Some(expr) {
+    return Some(expr)
+  }
+  self.parse_builtin_flow_traversal(name)
 }

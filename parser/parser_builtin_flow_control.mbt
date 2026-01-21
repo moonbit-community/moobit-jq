@@ -7,16 +7,14 @@ fn Parser::parse_builtin_flow_control(
   match name {
     "limit" => {
       self.expect(TLParen)
-      match self.current() {
-        Some(TNumber(n)) => {
-          self.advance()
-          self.expect(TSemicolon)
-          let expr = self.parse_pipe()
-          self.expect(TRParen)
-          Some(@ast.Expr::Limit(n.to_int(), expr))
-        }
-        _ => raise InvalidSyntax("limit expects number argument")
+      guard self.current() is Some(TNumber(n)) else {
+        raise InvalidSyntax("limit expects number argument")
       }
+      self.advance()
+      self.expect(TSemicolon)
+      let expr = self.parse_pipe()
+      self.expect(TRParen)
+      Some(@ast.Expr::Limit(n.to_int(), expr))
     }
     "until" => {
       self.expect(TLParen)

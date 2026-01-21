@@ -37,15 +37,15 @@ fn Parser::parse_index_or_slice(
     @ast.Expr::Pipe(base, @ast.Expr::Slice(start_or_index, end))
   } else {
     let indices : Array[Int] = []
-    match start_or_index {
-      Some(n) => indices.push(n)
-      None => raise InvalidSyntax("Expected index")
+    guard start_or_index is Some(n) else {
+      raise InvalidSyntax("Expected index")
     }
+    indices.push(n)
     while self.consume(TComma) {
-      match self.parse_slice_part() {
-        Some(n) => indices.push(n)
-        None => raise InvalidSyntax("Expected index after comma")
+      guard self.parse_slice_part() is Some(n2) else {
+        raise InvalidSyntax("Expected index after comma")
       }
+      indices.push(n2)
     }
     self.expect(TRBracket)
     @ast.Expr::Pipe(base, @ast.Expr::Index(indices))
@@ -62,13 +62,11 @@ fn Parser::parse_slice_part(self : Parser) -> Int? raise ParseError {
     }
     Some(TMinus) => {
       self.advance()
-      match self.current() {
-        Some(TNumber(n)) => {
-          self.advance()
-          Some(-n.to_int())
-        }
-        _ => raise InvalidSyntax("Expected number after minus")
+      guard self.current() is Some(TNumber(n)) else {
+        raise InvalidSyntax("Expected number after minus")
       }
+      self.advance()
+      Some(-n.to_int())
     }
     _ => None
   }

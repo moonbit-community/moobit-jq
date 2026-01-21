@@ -8,54 +8,39 @@ fn Parser::parse_builtin_flow_range(
     "range" => {
       self.expect(TLParen)
       let first_expr = self.parse_pipe()
-      match self.current() {
-        Some(TSemicolon) => {
-          self.advance()
-          let second_expr = self.parse_pipe()
-          match self.current() {
-            Some(TSemicolon) => {
-              self.advance()
-              let third_expr = self.parse_pipe()
-              self.expect(TRParen)
-              Some(
-                @ast.Expr::RangeWithStep(first_expr, second_expr, third_expr),
-              )
-            }
-            _ => {
-              self.expect(TRParen)
-              Some(@ast.Expr::RangeFromTo(first_expr, second_expr))
-            }
-          }
-        }
-        _ => {
+      if self.consume(TSemicolon) {
+        let second_expr = self.parse_pipe()
+        if self.consume(TSemicolon) {
+          let third_expr = self.parse_pipe()
           self.expect(TRParen)
-          match first_expr {
-            @ast.Expr::Literal(@ast.Literal::Number(n)) =>
-              Some(@ast.Expr::Range(n.to_int()))
-            _ => raise InvalidSyntax("range(n) expects literal number")
-          }
+          Some(@ast.Expr::RangeWithStep(first_expr, second_expr, third_expr))
+        } else {
+          self.expect(TRParen)
+          Some(@ast.Expr::RangeFromTo(first_expr, second_expr))
         }
+      } else {
+        self.expect(TRParen)
+        guard first_expr is @ast.Expr::Literal(@ast.Literal::Number(n)) else {
+          raise InvalidSyntax("range(n) expects literal number")
+        }
+        Some(@ast.Expr::Range(n.to_int()))
       }
     }
     "first" =>
-      match self.current() {
-        Some(TLParen) => {
-          self.advance()
-          let expr = self.parse_pipe()
-          self.expect(TRParen)
-          Some(@ast.Expr::FirstGen(expr))
-        }
-        _ => Some(@ast.Expr::First)
+      if self.consume(TLParen) {
+        let expr = self.parse_pipe()
+        self.expect(TRParen)
+        Some(@ast.Expr::FirstGen(expr))
+      } else {
+        Some(@ast.Expr::First)
       }
     "last" =>
-      match self.current() {
-        Some(TLParen) => {
-          self.advance()
-          let expr = self.parse_pipe()
-          self.expect(TRParen)
-          Some(@ast.Expr::LastGen(expr))
-        }
-        _ => Some(@ast.Expr::Last)
+      if self.consume(TLParen) {
+        let expr = self.parse_pipe()
+        self.expect(TRParen)
+        Some(@ast.Expr::LastGen(expr))
+      } else {
+        Some(@ast.Expr::Last)
       }
     "repeat" => {
       self.expect(TLParen)

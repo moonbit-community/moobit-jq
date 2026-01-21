@@ -3,13 +3,10 @@
 fn Parser::parse_pipe(self : Parser) -> @ast.Expr raise ParseError {
   let expr = self.parse_comma()
   if self.consume(TAs) {
-    let var_name = match self.current() {
-      Some(TVariable(name)) => {
-        self.advance()
-        name
-      }
-      _ => raise InvalidSyntax("Expected variable after 'as'")
+    guard self.current() is Some(TVariable(var_name)) else {
+      raise InvalidSyntax("Expected variable after 'as'")
     }
+    self.advance()
     self.expect(TPipe)
     let body = self.parse_pipe()
     return @ast.Expr::As(expr, var_name, body)

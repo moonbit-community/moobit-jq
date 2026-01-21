@@ -7,83 +7,67 @@ fn Parser::parse_builtin_string_regex(
   match name {
     "test" => {
       self.expect(TLParen)
-      match self.current() {
-        Some(TString(s)) => {
-          self.advance()
-          self.expect(TRParen)
-          Some(@ast.Expr::Test(s))
-        }
-        _ => raise InvalidSyntax("test expects string argument")
+      guard self.current() is Some(TString(s)) else {
+        raise InvalidSyntax("test expects string argument")
       }
+      self.advance()
+      self.expect(TRParen)
+      Some(@ast.Expr::Test(s))
     }
     "match" => {
       self.expect(TLParen)
-      match self.current() {
-        Some(TString(s)) => {
-          self.advance()
-          self.expect(TRParen)
-          Some(@ast.Expr::Match(s))
-        }
-        _ => raise InvalidSyntax("match expects string argument")
+      guard self.current() is Some(TString(s)) else {
+        raise InvalidSyntax("match expects string argument")
       }
+      self.advance()
+      self.expect(TRParen)
+      Some(@ast.Expr::Match(s))
     }
     "capture" => {
       self.expect(TLParen)
-      match self.current() {
-        Some(TString(s)) => {
-          self.advance()
-          self.expect(TRParen)
-          Some(@ast.Expr::Capture(s))
-        }
-        _ => raise InvalidSyntax("capture expects string argument")
+      guard self.current() is Some(TString(s)) else {
+        raise InvalidSyntax("capture expects string argument")
       }
+      self.advance()
+      self.expect(TRParen)
+      Some(@ast.Expr::Capture(s))
     }
     "splits" => {
       self.expect(TLParen)
-      match self.current() {
-        Some(TString(s)) => {
-          self.advance()
-          self.expect(TRParen)
-          Some(@ast.Expr::Splits(s))
-        }
-        _ => raise InvalidSyntax("splits expects string argument")
+      guard self.current() is Some(TString(s)) else {
+        raise InvalidSyntax("splits expects string argument")
       }
+      self.advance()
+      self.expect(TRParen)
+      Some(@ast.Expr::Splits(s))
     }
     "sub" => {
       self.expect(TLParen)
-      match self.current() {
-        Some(TString(pattern)) => {
-          self.advance()
-          self.expect(TSemicolon)
-          match self.current() {
-            Some(TString(replacement)) => {
-              self.advance()
-              self.expect(TRParen)
-              Some(@ast.Expr::Sub(pattern, replacement))
-            }
-            _ => raise InvalidSyntax("sub expects string replacement")
-          }
-        }
-        _ => raise InvalidSyntax("sub expects string pattern")
+      guard self.current() is Some(TString(pattern)) else {
+        raise InvalidSyntax("sub expects string pattern")
       }
+      self.advance()
+      self.expect(TSemicolon)
+      guard self.current() is Some(TString(replacement)) else {
+        raise InvalidSyntax("sub expects string replacement")
+      }
+      self.advance()
+      self.expect(TRParen)
+      Some(@ast.Expr::Sub(pattern, replacement))
     }
     "gsub" => {
       self.expect(TLParen)
-      match self.current() {
-        Some(TString(pattern)) => {
-          self.advance()
-          self.expect(TSemicolon)
-          match self.current() {
-            Some(TString(replacement)) => {
-              self.advance()
-              self.expect(TRParen)
-              Some(@ast.Expr::GSub(pattern, replacement))
-            }
-            _ => raise InvalidSyntax("gsub expects string replacement")
-          }
-        }
-        _ => raise InvalidSyntax("gsub expects string pattern")
+      guard self.current() is Some(TString(pattern)) else {
+        raise InvalidSyntax("gsub expects string pattern")
       }
+      self.advance()
+      self.expect(TSemicolon)
+      guard self.current() is Some(TString(replacement)) else {
+        raise InvalidSyntax("gsub expects string replacement")
+      }
+      self.advance()
+      self.expect(TRParen)
+      Some(@ast.Expr::GSub(pattern, replacement))
     }
     _ => None
   }
