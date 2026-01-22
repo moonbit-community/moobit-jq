@@ -1,7 +1,0 @@
-{
-  "import": [
-    "bobzhang/moonjq/ast",
-    "moonbitlang/core/buffer",
-    "moonbitlang/core/strconv"
-  ]
-}

@@ -16,7 +16,7 @@ The interpreter uses lazy evaluation via `Iter[Json]` to enable efficient stream
 
 ### eval
 
-```moonbit
+```moonbit nocheck
 pub fn eval(expr : Expr, input : Json) -> Iter[Json] raise
 ```
 
@@ -33,7 +33,7 @@ Evaluate a jq expression against JSON input, returning an iterator of results.
 - `InterpreterError` on evaluation failures (type mismatches, missing keys, etc.)
 
 **Example:**
-```moonbit
+```moonbit nocheck
 let expr = @parser.parse(".users[] | .name")
 let input = @json.parse("{\"users\": [{\"name\": \"Alice\"}, {\"name\": \"Bob\"}]}")
 for name in @ast.eval(expr, input) {
@@ -45,7 +45,7 @@ for name in @ast.eval(expr, input) {
 
 ### Expr
 
-```moonbit
+```moonbit nocheck
 pub(all) enum Expr
 ```
 
@@ -208,7 +208,8 @@ The expression AST representing all jq constructs. Key variants include:
 
 ### Literal
 
-```moonbit
+```moonbit nocheck
+///|
 pub(all) enum Literal {
   Null
   Bool(Bool)
@@ -221,21 +222,22 @@ Literal values that can appear in jq expressions.
 
 ### BinaryOp
 
-```moonbit
+```moonbit nocheck
+///|
 pub(all) enum BinaryOp {
-  Add          // +
-  Subtract     // -
-  Multiply     // *
-  Divide       // /
-  Modulo       // %
-  Equal        // ==
-  NotEqual     // !=
-  LessThan     // <
-  LessEq       // <=
-  GreaterThan  // >
-  GreaterEq    // >=
-  And          // and
-  Or           // or
+  Add // +
+  Subtract // -
+  Multiply // *
+  Divide // /
+  Modulo // %
+  Equal // ==
+  NotEqual // !=
+  LessThan // <
+  LessEq // <=
+  GreaterThan // >
+  GreaterEq // >=
+  And // and
+  Or // or
 }
 ```
 
@@ -243,9 +245,10 @@ Binary operators for arithmetic, comparison, and logical operations.
 
 ### InterpreterError
 
-```moonbit
+```moonbit nocheck
+///|
 pub(all) suberror InterpreterError {
-  TypeMismatch(String, String)   // (expected, got)
+  TypeMismatch(String, String) // (expected, got)
   KeyNotFound(String)
   IndexOutOfBounds(Int)
   InvalidOperation(String)
@@ -271,7 +274,7 @@ Runtime errors during expression evaluation:
 
 The interpreter uses `Iter[Json]` for lazy evaluation:
 
-```moonbit
+```moonbit nocheck
 // Results are computed on-demand
 let results = @ast.eval(expr, input)
 

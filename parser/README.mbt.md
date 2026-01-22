@@ -15,7 +15,7 @@ The parser handles the full jq syntax including operators, control flow, functio
 
 ### parse
 
-```moonbit
+```moonbit nocheck
 pub fn parse(input : String) -> @ast.Expr raise
 ```
 
@@ -32,13 +32,14 @@ Parse a jq query string into an AST expression. This is the main entry point for
 - `LexError` if the query contains invalid tokens
 
 **Example:**
-```moonbit
+```moonbit nocheck
+///|
 let expr = @parser.parse(".users[] | .name")
 ```
 
 ### lex
 
-```moonbit
+```moonbit nocheck
 pub fn lex(input : String) -> Array[Token] raise LexError
 ```
 
@@ -54,7 +55,8 @@ Tokenize a jq query string into an array of tokens. This is useful for debugging
 - `LexError` on invalid characters, unterminated strings, or invalid numbers
 
 **Example:**
-```moonbit
+```moonbit nocheck
+///|
 let tokens = @parser.lex(".foo | .bar")
 // [TDot, TIdentifier("foo"), TPipe, TDot, TIdentifier("bar"), TEof]
 ```
@@ -63,7 +65,8 @@ let tokens = @parser.lex(".foo | .bar")
 
 ### Token
 
-```moonbit
+```moonbit nocheck
+///|
 pub(all) enum Token {
   // Literals
   TNumber(Double)
@@ -73,79 +76,80 @@ pub(all) enum Token {
   TFalse
   TNull
   TIdentifier(String)
-  TVariable(String)    // $name
-  TFormat(String)      // @base64, @uri, etc.
+  TVariable(String) // $name
+  TFormat(String) // @base64, @uri, etc.
 
   // Operators
-  TDot                 // .
-  TDotDot              // ..
-  TPipe                // |
-  TComma               // ,
-  TColon               // :
-  TSemicolon           // ;
-  TQuestion            // ?
+  TDot // .
+  TDotDot // ..
+  TPipe // |
+  TComma // ,
+  TColon // :
+  TSemicolon // ;
+  TQuestion // ?
 
   // Brackets
-  TLParen              // (
-  TRParen              // )
-  TLBracket            // [
-  TRBracket            // ]
-  TLBrace              // {
-  TRBrace              // }
+  TLParen // (
+  TRParen // )
+  TLBracket // [
+  TRBracket // ]
+  TLBrace // {
+  TRBrace // }
 
   // Arithmetic
-  TPlus                // +
-  TMinus               // -
-  TStar                // *
-  TSlash               // /
-  TPercent             // %
+  TPlus // +
+  TMinus // -
+  TStar // *
+  TSlash // /
+  TPercent // %
 
   // Comparison
-  TEq                  // ==
-  TNeq                 // !=
-  TLt                  // <
-  TLe                  // <=
-  TGt                  // >
-  TGe                  // >=
+  TEq // ==
+  TNeq // !=
+  TLt // <
+  TLe // <=
+  TGt // >
+  TGe // >=
 
   // Assignment
-  TAssign              // =
-  TUpdate              // |=
-  TAlternative         // //
-  TAddAssign           // +=
-  TSubAssign           // -=
-  TMulAssign           // *=
-  TDivAssign           // /=
-  TModAssign           // %=
-  TAltAssign           // //=
+  TAssign // =
+  TUpdate // |=
+  TAlternative // //
+  TAddAssign // +=
+  TSubAssign // -=
+  TMulAssign // *=
+  TDivAssign // /=
+  TModAssign // %=
+  TAltAssign // //=
 
   // Keywords
-  TAnd                 // and
-  TOr                  // or
-  TNot                 // not
-  TIf                  // if
-  TThen                // then
-  TElse                // else
-  TElif                // elif
-  TEnd                 // end
-  TAs                  // as
-  TReduce              // reduce
-  TForeach             // foreach
-  TTry                 // try
-  TCatch               // catch
-  TDef                 // def
+  TAnd // and
+  TOr // or
+  TNot // not
+  TIf // if
+  TThen // then
+  TElse // else
+  TElif // elif
+  TEnd // end
+  TAs // as
+  TReduce // reduce
+  TForeach // foreach
+  TTry // try
+  TCatch // catch
+  TDef // def
   TEof
 }
 ```
 
 ### LexError
 
-```moonbit
+```moonbit nocheck
+///|
 pub suberror LexError {
-  UnexpectedChar(Int, Char)      // Position and unexpected character
-  UnterminatedString(Int)        // Position where string started
-  InvalidNumber(Int, String)     // Position and invalid number text
-  InvalidEscape(Int, Char)       // Position and invalid escape character
+  UnexpectedChar(Int, Char) // Position and unexpected character
+  UnterminatedString(Int) // Position where string started
+  InvalidNumber(Int, String) // Position and invalid number text
+  InvalidEscape(Int, Char) // Position and invalid escape character
 }
 ```
 
@@ -160,10 +164,11 @@ Lexer errors indicate problems during tokenization:
 
 ### ParseError
 
-```moonbit
+```moonbit nocheck
+///|
 pub(all) suberror ParseError {
-  UnexpectedToken(String, String)  // (found, expected)
-  UnexpectedEnd(String)            // (expected)
+  UnexpectedToken(String, String) // (found, expected)
+  UnexpectedEnd(String) // (expected)
   InvalidSyntax(String)
   InvalidExpression(String)
 }

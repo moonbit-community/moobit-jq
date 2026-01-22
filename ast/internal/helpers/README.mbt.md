@@ -10,7 +10,7 @@ This is an internal package used by the `ast` interpreter. It contains helper fu
 
 ### json_type_name
 
-```moonbit
+```moonbit nocheck
 pub fn json_type_name(json : Json) -> String
 ```
 
@@ -23,7 +23,7 @@ Get the jq type name for a JSON value. This corresponds to what the jq `type` fu
 - A string representing the type: `"null"`, `"boolean"`, `"number"`, `"string"`, `"array"`, or `"object"`
 
 **Example:**
-```moonbit
+```moonbit nocheck
 json_type_name(Json::Null)           // "null"
 json_type_name(Json::True)           // "boolean"
 json_type_name(Json::False)          // "boolean"
@@ -35,7 +35,7 @@ json_type_name(Json::Object({}))     // "object"
 
 ### is_truthy
 
-```moonbit
+```moonbit nocheck
 pub fn is_truthy(value : Json) -> Bool
 ```
 
@@ -51,7 +51,7 @@ In jq, only `false` and `null` are falsy. Everything else (including `0`, `""`, 
 - `true` for all other values
 
 **Example:**
-```moonbit
+```moonbit nocheck
 is_truthy(Json::Null)           // false
 is_truthy(Json::False)          // false
 is_truthy(Json::True)           // true

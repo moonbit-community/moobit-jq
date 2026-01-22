@@ -47,9 +47,10 @@ fn eval_index_of(
             String(substr) if substr.is_empty() => Iter::singleton(null)
             String(substr) =>
               Iter::singleton(
-                s.find(substr).map(fn(pos) { Json::number(pos.to_double()) }).unwrap_or(
-                  null,
-                ),
+                s
+                .find(substr)
+                .map(fn(pos) { Json::number(pos.to_double()) })
+                .unwrap_or(null),
               )
             _ => Iter::singleton(null)
           }

@@ -41,7 +41,9 @@ fn Parser::parse_builtin_flow_reduce(
       self.expect(TRParen)
       self.expect(TRParen)
       Some(
-        @ast.Expr::Foreach(gen_expr, var_name, init_expr, update_expr, extract_expr),
+        @ast.Expr::Foreach(
+          gen_expr, var_name, init_expr, update_expr, extract_expr,
+        ),
       )
     }
     _ => None

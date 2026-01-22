@@ -1,0 +1,11 @@
+import {
+  "bobzhang/moonjq/ast",
+  "bobzhang/moonjq/parser",
+  "moonbitlang/core/json",
+}
+
+import "test" {
+  "moonbitlang/core/encoding/utf8" as @encoding/utf8,
+  "moonbitlang/core/list",
+  "moonbitlang/core/strconv",
+}
