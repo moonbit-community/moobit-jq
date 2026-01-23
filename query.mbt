@@ -2,7 +2,7 @@
 /// Compiled jq query wrapper so the AST stays internal.
 pub struct Query {
   expr : @ast.Expr
-}
+} derive(Debug)
 
 ///|
 /// Methods on Query for direct control.

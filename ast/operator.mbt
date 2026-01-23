@@ -14,4 +14,4 @@ pub(all) enum BinaryOp {
   GreaterEq // >=
   And // and
   Or // or
-} derive(Show, Eq, ToJson)
+} derive(Eq, ToJson, Debug, Show)

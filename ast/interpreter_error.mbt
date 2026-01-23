@@ -8,4 +8,4 @@ pub(all) suberror InterpreterError {
   DivisionByZero
   TypeError(String)
   EvalError(String)
-} derive(Eq, Show)
+} derive(Eq, Debug, Show)

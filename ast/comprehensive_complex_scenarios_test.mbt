@@ -3,7 +3,7 @@
 
 ///|
 test "complex: data transformation pipeline" {
-  inspect(
+  debug_inspect(
     test_query(
       ".users | map({name: .name, email: .email}) | sort_by(.name)", "{\"users\":[{\"name\":\"Bob\",\"email\":\"bob@test.com\",\"age\":30},{\"name\":\"Alice\",\"email\":\"alice@test.com\",\"age\":25}]}",
     ),
@@ -15,7 +15,7 @@ test "complex: data transformation pipeline" {
 
 ///|
 test "complex: conditional aggregation" {
-  inspect(
+  debug_inspect(
     test_query("[.[] | select(. > 5)] | add", "[1,3,10,7,2,8]"),
     content="Number(25)",
   )
@@ -23,7 +23,7 @@ test "complex: conditional aggregation" {
 
 ///|
 test "complex: grouped operations" {
-  inspect(
+  debug_inspect(
     test_query(
       "group_by(.type) | map({type: .[0].type, count: length})", "[{\"type\":\"A\",\"val\":1},{\"type\":\"B\",\"val\":2},{\"type\":\"A\",\"val\":3},{\"type\":\"B\",\"val\":4}]",
     ),

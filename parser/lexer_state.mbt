@@ -4,7 +4,7 @@ priv struct Lexer {
   input : String
   mut pos : Int
   tokens : Array[Token]
-}
+} derive(Debug)
 
 ///|
 /// Create a new lexer

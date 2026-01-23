@@ -3,7 +3,7 @@
 
 ///|
 test "corner: multiple alternatives" {
-  inspect(
+  debug_inspect(
     test_query(".a // .b // .c // \"default\"", "{\"c\":5}"),
     content="Null",
   )
@@ -11,7 +11,7 @@ test "corner: multiple alternatives" {
 
 ///|
 test "corner: alternative with false" {
-  inspect(
+  debug_inspect(
     test_query(". // \"default\"", "false"),
     content="String(\"default\")",
   )
@@ -19,10 +19,10 @@ test "corner: alternative with false" {
 
 ///|
 test "corner: alternative with 0" {
-  inspect(test_query(". // \"default\"", "0"), content="Number(0)")
+  debug_inspect(test_query(". // \"default\"", "0"), content="Number(0)")
 }
 
 ///|
 test "corner: alternative with empty string" {
-  inspect(test_query(". // \"default\"", "\"\""), content="String(\"\")")
+  debug_inspect(test_query(". // \"default\"", "\"\""), content="String(\"\")")
 }

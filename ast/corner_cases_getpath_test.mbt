@@ -3,7 +3,7 @@
 
 ///|
 test "corner: getpath returns null for non-existent path" {
-  inspect(
+  debug_inspect(
     test_query("getpath([\"x\",\"y\",\"z\"])", "{\"a\":1}"),
     content="Null",
   )
@@ -11,7 +11,7 @@ test "corner: getpath returns null for non-existent path" {
 
 ///|
 test "corner: getpath with empty path returns input" {
-  inspect(
+  debug_inspect(
     test_query("getpath([])", "{\"a\":1}"),
     content="Object({\"a\": Number(1)})",
   )

@@ -1,8 +1,12 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "bobzhang/moonjq/ast"
 
+import {
+  "moonbitlang/core/debug",
+}
+
 // Values
-pub fn eval(Expr, Json) -> Iterator[Json] raise
+pub fn eval(Expr, Json) -> Iter[Json] raise
 
 // Errors
 pub(all) suberror InterpreterError {
@@ -16,6 +20,7 @@ pub(all) suberror InterpreterError {
 }
 pub impl Eq for InterpreterError
 pub impl Show for InterpreterError
+pub impl @debug.Debug for InterpreterError
 
 // Types and methods
 pub(all) enum BinaryOp {
@@ -36,6 +41,7 @@ pub(all) enum BinaryOp {
 pub impl Eq for BinaryOp
 pub impl Show for BinaryOp
 pub impl ToJson for BinaryOp
+pub impl @debug.Debug for BinaryOp
 
 pub(all) enum Expr {
   Identity
@@ -164,6 +170,7 @@ pub(all) enum Expr {
 pub impl Eq for Expr
 pub impl Show for Expr
 pub impl ToJson for Expr
+pub impl @debug.Debug for Expr
 
 pub(all) enum Literal {
   Null
@@ -174,6 +181,7 @@ pub(all) enum Literal {
 pub impl Eq for Literal
 pub impl Show for Literal
 pub impl ToJson for Literal
+pub impl @debug.Debug for Literal
 
 // Type aliases
 

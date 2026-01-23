@@ -3,7 +3,7 @@
 
 ///|
 test "corner: deeply nested object modification" {
-  inspect(
+  debug_inspect(
     test_query(".a.b.c.d = 99", "{\"a\":{\"b\":{\"c\":{\"d\":1}}}}"),
     content="Number(99)",
   )
@@ -11,12 +11,12 @@ test "corner: deeply nested object modification" {
 
 ///|
 test "corner: creating nested structure" {
-  inspect(test_query(".a.b.c = 42", "{}"), content="Number(42)")
+  debug_inspect(test_query(".a.b.c = 42", "{}"), content="Number(42)")
 }
 
 ///|
 test "corner: array within object modification" {
-  inspect(
+  debug_inspect(
     test_query(
       ".items[1].value = 99", "{\"items\":[{\"value\":1},{\"value\":2}]}",
     ),

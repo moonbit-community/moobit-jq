@@ -65,4 +65,4 @@ pub(all) enum Token {
   TCatch // catch
   TDef // def
   TEof
-} derive(Show, Eq)
+} derive(Eq, Debug, Show)

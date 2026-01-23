@@ -3,7 +3,7 @@
 
 ///|
 test "corner: group_by then sum values" {
-  inspect(
+  debug_inspect(
     test_query(
       "group_by(.type) | map({type: .[0].type, sum: map(.val) | add})", "[{\"type\":\"A\",\"val\":1},{\"type\":\"A\",\"val\":2},{\"type\":\"B\",\"val\":3}]",
     ),
@@ -15,5 +15,5 @@ test "corner: group_by then sum values" {
 
 ///|
 test "corner: group_by with empty array" {
-  inspect(test_query("group_by(.x)", "[]"), content="Array([])")
+  debug_inspect(test_query("group_by(.x)", "[]"), content="Array([])")
 }

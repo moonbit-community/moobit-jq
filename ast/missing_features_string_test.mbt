@@ -1,6 +1,6 @@
 ///|
 test "missing: ltrimstr" {
-  inspect(
+  debug_inspect(
     test_feature(".text | ltrimstr(\"hello \")", "{\"text\":\"hello world\"}"),
     content=(
       #|String("world")
@@ -10,7 +10,7 @@ test "missing: ltrimstr" {
 
 ///|
 test "missing: rtrimstr" {
-  inspect(
+  debug_inspect(
     test_feature(".text | rtrimstr(\" world\")", "{\"text\":\"hello world\"}"),
     content=(
       #|String("hello")
@@ -20,7 +20,7 @@ test "missing: rtrimstr" {
 
 ///|
 test "missing: ascii_upcase" {
-  inspect(
+  debug_inspect(
     test_feature(".text | ascii_upcase", "{\"text\":\"hello\"}"),
     content=(
       #|String("HELLO")
@@ -30,7 +30,7 @@ test "missing: ascii_upcase" {
 
 ///|
 test "missing: ascii_downcase" {
-  inspect(
+  debug_inspect(
     test_feature(".text | ascii_downcase", "{\"text\":\"HELLO\"}"),
     content=(
       #|String("hello")
@@ -40,7 +40,7 @@ test "missing: ascii_downcase" {
 
 ///|
 test "missing: string interpolation" {
-  inspect(
+  debug_inspect(
     test_feature("\"Hello \\(.name)\"", "{\"name\":\"World\"}"),
     content=(
       #|String("Hello World")

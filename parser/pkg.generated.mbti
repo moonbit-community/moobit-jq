@@ -1,9 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "bobzhang/moonjq/parser"
 
-import(
-  "bobzhang/moonjq/ast"
-)
+import {
+  "bobzhang/moonjq/ast",
+  "moonbitlang/core/debug",
+}
 
 // Values
 pub fn lex(String) -> Array[Token] raise LexError
@@ -19,6 +20,7 @@ pub suberror LexError {
 }
 pub impl Eq for LexError
 pub impl Show for LexError
+pub impl @debug.Debug for LexError
 
 pub(all) suberror ParseError {
   UnexpectedToken(String, String)
@@ -28,6 +30,7 @@ pub(all) suberror ParseError {
 }
 pub impl Eq for ParseError
 pub impl Show for ParseError
+pub impl @debug.Debug for ParseError
 
 // Types and methods
 pub(all) enum Token {
@@ -91,6 +94,7 @@ pub(all) enum Token {
 }
 pub impl Eq for Token
 pub impl Show for Token
+pub impl @debug.Debug for Token
 
 // Type aliases
 

@@ -5,4 +5,4 @@ pub(all) suberror ParseError {
   UnexpectedEnd(String) // (expected)
   InvalidSyntax(String)
   InvalidExpression(String)
-} derive(Eq, Show)
+} derive(Eq, Debug, Show)

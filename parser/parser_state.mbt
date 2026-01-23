@@ -3,7 +3,7 @@
 priv struct Parser {
   tokens : Array[Token]
   mut pos : Int
-}
+} derive(Debug)
 
 ///|
 /// Create a new parser from tokens

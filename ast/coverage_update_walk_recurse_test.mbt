@@ -30,5 +30,5 @@ test "coverage: walk empty results and recurse safety" {
   let sep = ","
   let input = "[\{nums.join(sep)}]"
   let results = coverage_eval("recurse(.[]; . != null)", input)
-  inspect(results.length(), content="102")
+  debug_inspect(results.length(), content="102")
 }

@@ -5,7 +5,7 @@ pub(all) enum Literal {
   Bool(Bool)
   Number(Double)
   String(String)
-} derive(Show, Eq, ToJson)
+} derive(Eq, ToJson, Debug, Show)
 
 ///|
 fn Literal::to_json(self : Literal) -> Json {

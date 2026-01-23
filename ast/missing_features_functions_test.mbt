@@ -1,11 +1,14 @@
 ///|
 test "missing: user-defined functions" {
-  inspect(test_feature("def double: . * 2; double", "5"), content="Number(10)")
+  debug_inspect(
+    test_feature("def double: . * 2; double", "5"),
+    content="Number(10)",
+  )
 }
 
 ///|
 test "missing: user-defined functions with params" {
-  inspect(
+  debug_inspect(
     test_feature("def add(x): . + x; add(10)", "5"),
     content=(
       #|EvalError: TypeMismatch("array", "number")
@@ -15,7 +18,7 @@ test "missing: user-defined functions with params" {
 
 ///|
 test "missing: recursive user-defined functions" {
-  inspect(
+  debug_inspect(
     test_feature(
       "def factorial: if . <= 1 then 1 else . * ((. - 1) | factorial) end; factorial",
       "5",
@@ -26,7 +29,7 @@ test "missing: recursive user-defined functions" {
 
 ///|
 test "missing: comments in query" {
-  inspect(
+  debug_inspect(
     test_feature("# comment\n. + 1", "1"),
     content=(
       #|Number(2)
@@ -36,7 +39,7 @@ test "missing: comments in query" {
 
 ///|
 test "missing: multiline queries" {
-  inspect(
+  debug_inspect(
     test_feature(".\n+\n1", "1"),
     content=(
       #|Number(2)

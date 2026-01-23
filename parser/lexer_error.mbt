@@ -5,4 +5,4 @@ pub suberror LexError {
   UnterminatedString(Int)
   InvalidNumber(Int, String)
   InvalidEscape(Int, Char)
-} derive(Show, Eq)
+} derive(Eq, Debug, Show)

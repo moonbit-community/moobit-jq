@@ -10,7 +10,7 @@ fn lex_err(query : String) -> Bool {
 ///|
 test "coverage: peek at end of input" {
   // Triggers lexer.peek() at end for '-' number lookahead.
-  inspect(@parser.lex("-"), content="[TMinus, TEof]")
+  debug_inspect(@parser.lex("-"), content="[TMinus, TEof]")
 }
 
 ///|
@@ -36,12 +36,12 @@ test "coverage: interpolation lexer handles nested parens and strings" {
   let tokens = @parser.lex(query)
   match tokens[0] {
     TStringInterpolation(parts) => {
-      inspect(parts.length(), content="3")
-      inspect(parts[0].0, content="x ")
-      inspect(parts[1].1.unwrap(), content="(1 + (2)) | \"a\\\"b\"")
-      inspect(parts[2].0, content=" y")
+      debug_inspect(parts.length(), content="3")
+      debug_inspect(parts[0].0, content="x ")
+      debug_inspect(parts[1].1.unwrap(), content="(1 + (2)) | \"a\\\"b\"")
+      debug_inspect(parts[2].0, content=" y")
     }
-    _ => inspect(false, content="expected TStringInterpolation")
+    _ => debug_inspect(false, content="expected TStringInterpolation")
   }
 }
 

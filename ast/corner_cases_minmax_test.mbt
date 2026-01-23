@@ -3,17 +3,17 @@
 
 ///|
 test "corner: min_by with empty array returns null" {
-  inspect(test_query("min_by(.x)", "[]"), content="Null")
+  debug_inspect(test_query("min_by(.x)", "[]"), content="Null")
 }
 
 ///|
 test "corner: max_by with empty array returns null" {
-  inspect(test_query("max_by(.x)", "[]"), content="Null")
+  debug_inspect(test_query("max_by(.x)", "[]"), content="Null")
 }
 
 ///|
 test "corner: min_by with single element" {
-  inspect(
+  debug_inspect(
     test_query("min_by(.x)", "[{\"x\":5}]"),
     content="Object({\"x\": Number(5)})",
   )
@@ -21,7 +21,7 @@ test "corner: min_by with single element" {
 
 ///|
 test "corner: max_by with single element" {
-  inspect(
+  debug_inspect(
     test_query("max_by(.x)", "[{\"x\":5}]"),
     content="Object({\"x\": Number(5)})",
   )

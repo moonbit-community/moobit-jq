@@ -1,6 +1,6 @@
 ///|
 test "missing: @base64 format" {
-  inspect(
+  debug_inspect(
     test_feature("@base64", "\"hello\""),
     content=(
       #|String("aGVsbG8=")
@@ -10,7 +10,7 @@ test "missing: @base64 format" {
 
 ///|
 test "missing: @base64d format" {
-  inspect(
+  debug_inspect(
     test_feature("@base64d", "\"aGVsbG8=\""),
     content=(
       #|String("hello")
@@ -20,7 +20,7 @@ test "missing: @base64d format" {
 
 ///|
 test "missing: @uri format" {
-  inspect(
+  debug_inspect(
     test_feature("@uri", "\"hello world\""),
     content=(
       #|String("hello%20world")
@@ -30,7 +30,7 @@ test "missing: @uri format" {
 
 ///|
 test "missing: @csv format" {
-  inspect(
+  debug_inspect(
     test_feature("@csv", "[[1,2,3]]"),
     content=(
       #|String("Array([Number(1), Number(2), Number(3)])")
@@ -40,7 +40,7 @@ test "missing: @csv format" {
 
 ///|
 test "missing: @json format" {
-  inspect(
+  debug_inspect(
     test_feature("@json", "{\"a\":1}"),
     content=(
       #|String("Object({\"a\": Number(1)})")
@@ -50,7 +50,7 @@ test "missing: @json format" {
 
 ///|
 test "missing: @html format" {
-  inspect(
+  debug_inspect(
     test_feature("@html", "\"<div>\""),
     content=(
       #|String("&lt;div&gt;")
@@ -60,7 +60,7 @@ test "missing: @html format" {
 
 ///|
 test "missing: @text format" {
-  inspect(
+  debug_inspect(
     test_feature("@text", "\"hello\""),
     content=(
       #|String("String(\"hello\")")
@@ -70,7 +70,7 @@ test "missing: @text format" {
 
 ///|
 test "missing: test(regex)" {
-  inspect(
+  debug_inspect(
     test_feature(".text | test(\"^hello\")", "{\"text\":\"hello world\"}"),
     content="False",
   )
@@ -78,7 +78,7 @@ test "missing: test(regex)" {
 
 ///|
 test "missing: match(regex)" {
-  inspect(
+  debug_inspect(
     test_feature(".text | match(\"[0-9]+\")", "{\"text\":\"abc123def\"}"),
     content="",
   )
@@ -86,7 +86,7 @@ test "missing: match(regex)" {
 
 ///|
 test "missing: capture(regex)" {
-  inspect(
+  debug_inspect(
     test_feature(
       ".text | capture(\"(?<num>[0-9]+)\")", "{\"text\":\"abc123def\"}",
     ),
@@ -96,7 +96,7 @@ test "missing: capture(regex)" {
 
 ///|
 test "missing: splits(regex)" {
-  inspect(
+  debug_inspect(
     test_feature(".text | splits(\" +\")", "{\"text\":\"hello   world\"}"),
     content=(
       #|String("hello   world")
@@ -106,7 +106,7 @@ test "missing: splits(regex)" {
 
 ///|
 test "missing: sub(regex; replacement)" {
-  inspect(
+  debug_inspect(
     test_feature(
       ".text | sub(\"world\"; \"MoonBit\")", "{\"text\":\"hello world\"}",
     ),
@@ -118,7 +118,7 @@ test "missing: sub(regex; replacement)" {
 
 ///|
 test "missing: gsub(regex; replacement)" {
-  inspect(
+  debug_inspect(
     test_feature(".text | gsub(\"o\"; \"0\")", "{\"text\":\"hello world\"}"),
     content=(
       #|String("hell0 w0rld")

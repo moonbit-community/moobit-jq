@@ -7,7 +7,7 @@
 
 ///|
 test "paths: all paths in nested structure" {
-  inspect(
+  debug_inspect(
     test_query("paths", "{\"a\":{\"b\":1,\"c\":2}}"),
     content="Array([String(\"a\")]), Array([String(\"a\"), String(\"b\")]), Array([String(\"a\"), String(\"c\")])",
   )
@@ -15,7 +15,7 @@ test "paths: all paths in nested structure" {
 
 ///|
 test "leaf_paths: only leaf paths" {
-  inspect(
+  debug_inspect(
     test_query("leaf_paths", "{\"a\":{\"b\":1,\"c\":2},\"d\":3}"),
     content="Array([String(\"a\"), String(\"b\")]), Array([String(\"a\"), String(\"c\")]), Array([String(\"d\")])",
   )
@@ -23,7 +23,7 @@ test "leaf_paths: only leaf paths" {
 
 ///|
 test "getpath: retrieve value at path" {
-  inspect(
+  debug_inspect(
     test_query("getpath([\"a\",\"b\"])", "{\"a\":{\"b\":42,\"c\":10}}"),
     content="Number(42)",
   )
@@ -31,7 +31,7 @@ test "getpath: retrieve value at path" {
 
 ///|
 test "setpath: set value at path" {
-  inspect(
+  debug_inspect(
     test_query("setpath([\"a\",\"b\"]; 99)", "{\"a\":{\"b\":1,\"c\":2}}"),
     content="Object({\"a\": Object({\"b\": Number(99), \"c\": Number(2)})})",
   )
@@ -39,7 +39,7 @@ test "setpath: set value at path" {
 
 ///|
 test "delpaths: delete multiple paths" {
-  inspect(
+  debug_inspect(
     test_query(
       "delpaths([[\"a\",\"b\"],[\"c\"]])", "{\"a\":{\"b\":1,\"d\":2},\"c\":3,\"e\":4}",
     ),
@@ -53,22 +53,22 @@ test "delpaths: delete multiple paths" {
 
 ///|
 test "nth: get specific element" {
-  inspect(test_query("nth(2)", "[10,20,30,40,50]"), content="Number(30)")
+  debug_inspect(test_query("nth(2)", "[10,20,30,40,50]"), content="Number(30)")
 }
 
 ///|
 test "nth: negative index" {
-  inspect(test_query("nth(-1)", "[10,20,30,40,50]"), content="Number(50)")
+  debug_inspect(test_query("nth(-1)", "[10,20,30,40,50]"), content="Number(50)")
 }
 
 ///|
 test "rindex: find last occurrence" {
-  inspect(test_query("rindex(2)", "[1,2,3,2,1]"), content="Number(3)")
+  debug_inspect(test_query("rindex(2)", "[1,2,3,2,1]"), content="Number(3)")
 }
 
 ///|
 test "limit: restrict output count" {
-  inspect(
+  debug_inspect(
     test_query("limit(3; .[])", "[1,2,3,4,5,6,7,8,9,10]"),
     content="Number(1), Number(2), Number(3)",
   )
@@ -76,7 +76,7 @@ test "limit: restrict output count" {
 
 ///|
 test "walk: transform all values" {
-  inspect(
+  debug_inspect(
     test_query(
       "walk(if type == \"number\" then . * 2 else . end)", "{\"a\":1,\"b\":{\"c\":2}}",
     ),

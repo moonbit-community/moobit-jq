@@ -145,4 +145,4 @@ pub(all) enum Expr {
   Splits(String) // splits(regex)
   Sub(String, String) // sub(regex; replacement)
   GSub(String, String) // gsub(regex; replacement)
-} derive(Show, Eq, ToJson)
+} derive(Eq, ToJson, Debug, Show)
