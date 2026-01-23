@@ -1,0 +1,16 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/moonjq/ast/internal/helpers"
+
+// Values
+pub fn is_truthy(Json) -> Bool
+
+pub fn json_type_name(Json) -> String
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+
