@@ -1,0 +1,16 @@
+{
+  "is-main": true,
+  "import": [
+    "bobzhang/moonjq",
+    "moonbitlang/async",
+    "moonbitlang/async/io",
+    "moonbitlang/async/stdio",
+    "moonbitlang/core/json",
+    "moonbitlang/x/fs",
+    "moonbitlang/x/sys"
+  ],
+  "targets": {
+    "main_native.mbt": ["native", "llvm"],
+    "main_wasm.mbt": ["wasm", "wasm-gc", "js"]
+  }
+}
